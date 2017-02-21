@@ -86,42 +86,20 @@ struct MavLinkHelper::impl {
     int hil_state_freq_ = -1;
     bool actuators_message_supported_ = false;
     const MultiRotor* vehicle_ = nullptr;
-    long last_gps_time = 0;
-    bool was_reseted = false;
+    long last_gps_time_ = 0;
+    bool was_reseted_ = false;
+    HILConnectionInfo connection_info_;
 
-	void loadSettings(Settings& settings)
-	{
-		this->SimSysID = static_cast<uint8_t>(settings.getInt("SimSysID", this->SimSysID));
-		settings.setInt("SimSysID", this->SimSysID);
-		this->SimCompID = settings.getInt("SimCompID", this->SimCompID);
-		settings.setInt("SimCompID", this->SimCompID);
+    void initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle)
+    {
+        connection_info_ = connection_info;
+        vehicle_ = vehicle;
+    }
 
-		this->ExtRendererSysID = static_cast<uint8_t>(settings.getInt("ExtRendererSysID", this->ExtRendererSysID));
-		settings.setInt("ExtRendererSysID", this->ExtRendererSysID);
-		this->ExtRendererCompID = settings.getInt("ExtRendererCompID", this->ExtRendererCompID);
-		settings.setInt("ExtRendererCompID", this->ExtRendererCompID);
-
-		this->AirControlSysID = static_cast<uint8_t>(settings.getInt("AirControlSysID", this->AirControlSysID));
-		settings.setInt("AirControlSysID", this->AirControlSysID);
-		this->AirControlCompID = settings.getInt("AirControlCompID", this->AirControlCompID);
-		settings.setInt("AirControlCompID", this->AirControlCompID);
-
-		this->LocalHostIp = settings.getString("LocalHostIp", this->LocalHostIp);
-		settings.setString("LocalHostIp", this->LocalHostIp);
-		this->ExternalSimPort = settings.getInt("ExternalSimPort", this->ExternalSimPort);
-		settings.setInt("ExternalSimPort", this->ExternalSimPort);
-
-		this->LogViewerPort = settings.getInt("LogViewerPort", this->LogViewerPort);
-		settings.setInt("LogViewerPort", this->LogViewerPort);
-		this->LogViewerHostIp = settings.getString("LogViewerHostIp", this->LogViewerHostIp);
-		settings.setString("LogViewerHostIp", this->LogViewerHostIp);
-
-		this->QgcPort = settings.getInt("QgcPort", this->QgcPort);
-		settings.setInt("QgcPort", this->QgcPort);
-		this->QgcHostIp = settings.getString("QgcHostIp", this->QgcHostIp);
-		settings.setString("QgcHostIp", this->QgcHostIp);
-	}
-
+    HILConnectionInfo getHILConnectionInfo()
+    {
+        return connection_info_;
+    }
 
     void normalizeRotorControls()
     {
@@ -230,7 +208,7 @@ struct MavLinkHelper::impl {
         return node;
     }
 
-    std::string findPixhawk()
+    static std::string findPixhawk()
     {
         auto result = MavLinkConnection::findSerialPorts(0, 0);
         for (auto iter = result.begin(); iter != result.end(); iter++)
@@ -259,9 +237,9 @@ struct MavLinkHelper::impl {
         connectToVideoServer();
     }
 
-    void connectToHIL(const HILConnectionInfo& connection_info)
+    void connectToHIL()
     {
-        createHILConnection(connection_info);
+        createHILConnection(connection_info_);
         initializeHILSubscrptions();
     }
 
@@ -428,7 +406,7 @@ struct MavLinkHelper::impl {
         hil_sensor.abs_pressure = abs_pressure;
         hil_sensor.pressure_alt = pressure_alt;
         //TODO: enable tempeprature? diff_presure
-        hil_sensor.fields_updated = was_reseted ? (1 << 31) : 0;
+        hil_sensor.fields_updated = was_reseted_ ? (1 << 31) : 0;
 
         if (main_node_ != nullptr) {
             main_node_->sendMessage(hil_sensor);
@@ -473,23 +451,19 @@ struct MavLinkHelper::impl {
         last_gps_message_ = hil_gps;
     }
 
-    real_T getRotorControlSignal(unsigned int rotor_index)
+    real_T getVertexControlSignal(unsigned int rotor_index)
     {
         std::lock_guard<std::mutex> guard(hil_controls_mutex_);
         return rotor_controls_[rotor_index];
     }
 
-    void initialize(const MultiRotor* vehicle)
-    {
-        vehicle_ = vehicle;
-    }
 
     //*** Start: UpdatableState implementation ***//
     void reset()
     {
-        was_reseted = true;
+        was_reseted_ = true;
         Utils::setValue(rotor_controls_, 0.0f);
-        last_gps_time = 0;
+        last_gps_time_ = 0;
         setNormalMode();
     }
 
@@ -512,8 +486,8 @@ struct MavLinkHelper::impl {
             const auto& gps_output = vehicle_->getGps()->getOutput();
 
             //send GPS
-            if (gps_output.is_valid && gps_output.gnss.time_utc > last_gps_time) {
-                last_gps_time = gps_output.gnss.time_utc;
+            if (gps_output.is_valid && gps_output.gnss.time_utc > last_gps_time_) {
+                last_gps_time_ = gps_output.gnss.time_utc;
                 Vector3r gps_velocity = gps_output.gnss.velocity;
                 Vector3r gps_velocity_xy = gps_velocity;
                 gps_velocity_xy.z() = 0;
@@ -531,8 +505,8 @@ struct MavLinkHelper::impl {
         }
 
         //must be done at the end
-        if (was_reseted)
-            was_reseted = false;
+        if (was_reseted_)
+            was_reseted_ = false;
     }
     //*** End: UpdatableState implementation ***//
 
@@ -640,6 +614,18 @@ struct MavLinkHelper::impl {
         }
     }
 
+
+    void start()
+    {
+        connectToHIL();
+        connectToLogViewer();
+        connectToQGC();
+    }
+    void stop()
+    {
+        close();
+    }
+
 };
 
 //empty constructor required for pimpl
@@ -653,9 +639,14 @@ MavLinkHelper::~MavLinkHelper()
     pimpl_->close();
 }
 
-void MavLinkHelper::loadSettings(Settings& settings)
+void MavLinkHelper::initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle)
 {
-	pimpl_->loadSettings(settings);
+   pimpl_->initialize(connection_info, vehicle);
+}
+
+MavLinkHelper::HILConnectionInfo MavLinkHelper::getHILConnectionInfo()
+{
+    return pimpl_->getHILConnectionInfo();
 }
 
 int MavLinkHelper::getRotorControlsCount()
@@ -666,9 +657,9 @@ void MavLinkHelper::connectToExternalSim()
 {
     pimpl_->connectToExternalSim();
 }
-void MavLinkHelper::connectToHIL(const HILConnectionInfo& connection_info)
+void MavLinkHelper::connectToHIL()
 {
-    pimpl_->connectToHIL(connection_info);
+    pimpl_->connectToHIL();
 }
 bool MavLinkHelper::connectToLogViewer()
 {
@@ -728,23 +719,16 @@ void MavLinkHelper::setHILMode()
 }
 std::string MavLinkHelper::findPixhawk()
 {
-    return pimpl_->findPixhawk();
+    return impl::findPixhawk();
 }
-void MavLinkHelper::initialize(const MultiRotor* vehicle)
-{
-    pimpl_->initialize(vehicle);
-}
-real_T MavLinkHelper::getRotorControlSignal(unsigned int rotor_index)
-{
-    return pimpl_->getRotorControlSignal(rotor_index);
-}
+
 DroneControlBase* MavLinkHelper::createOrGetDroneControl()
 {
     return pimpl_->createOrGetDroneControl();
 }
 
 
-//*** Start: UpdatableState implementation ***//
+//*** Start: ControllerBase implementation ***//
 void MavLinkHelper::reset()
 {
     pimpl_->reset();
@@ -753,7 +737,19 @@ void MavLinkHelper::update(real_T dt)
 {
     pimpl_->update(dt);
 }
-//*** End: UpdatableState implementation ***//
+real_T MavLinkHelper::getVertexControlSignal(unsigned int rotor_index)
+{
+    return pimpl_->getVertexControlSignal(rotor_index);
+}
+void MavLinkHelper::start()
+{
+    pimpl_->start();
+}
+void MavLinkHelper::stop()
+{
+    pimpl_->stop();
+}
+//*** End: ControllerBase implementation ***//
 
 }} //namespace
 #endif

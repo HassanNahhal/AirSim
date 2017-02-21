@@ -18,37 +18,35 @@ void MavMultiRotor::initialize(AFlyingPawn* vehicle_pawn)
 	initial_environment.geo_point = vehicle_pawn_->getHomePoint();
 	initial_environment.min_z_over_ground = vehicle_pawn_->getMinZOverGround();
 	environment_.initialize(initial_environment);
+    createController();
 	vehicle_.initialize(Px4QuadX::Params(), initial_kinematics,
-		&environment_, static_cast<ControllerBase*>(&mav_));
+		&environment_, controller_.get());
+}
 
-	// try and load settings
-    try {
-	    Settings& settings = Settings::loadJSonFile(L"settings.json");
-	    mav_.loadSettings(settings);
-
-	    auto settings_filename = Settings::singleton().getFileName();
-	    std::wstring msg = L"Loading settings from " + settings_filename;
-	    UAirBlueprintLib::LogMessage(FString(msg.c_str()), TEXT(""), LogDebugLevel::Success, 30);
-
-	    // write the settings back out so the user knows how to override any new settings.
-	    settings.saveJSonFile(L"settings.json");
-    }
-    catch (std::exception ex) {
-        UAirBlueprintLib::LogMessage(FString("Error loading settings from ~/Documents/AirSim/settings.json"), TEXT(""), LogDebugLevel::Failure, 30);
-        UAirBlueprintLib::LogMessage(FString(ex.what()), TEXT(""), LogDebugLevel::Failure, 30);
-    }
-
-	mav_.initialize(&vehicle_);
+void MavMultiRotor::createController(MultiRotor& vehicle)
+{
+    controller_.reset(new MavLinkHelper());
+    auto mav_controller = static_cast<MavLinkHelper*>(controller_.get());
+    mav_controller->initialize(getConnectionInfo(), &vehicle);
 }
 
 void MavMultiRotor::beginPlay()
 {
-	openConnection();
+    //connect to HIL
+    try {
+
+        controller_->start();
+    }
+    catch (std::exception ex) {
+
+        UAirBlueprintLib::LogMessage(FString("Vehicle controller cannot be started, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
+        UAirBlueprintLib::LogMessage(FString(ex.what()), TEXT(""), LogDebugLevel::Failure, 180);
+    }
 }
 
 void MavMultiRotor::endPlay()
 {
-	closeConnection();
+    controller_->stop();
 }
 
 msr::airlib::MavLinkHelper::HILConnectionInfo MavMultiRotor::getConnectionInfo()
@@ -82,45 +80,6 @@ msr::airlib::MavLinkHelper::HILConnectionInfo MavMultiRotor::getConnectionInfo()
 	return connection_info;
 }
 
-void MavMultiRotor::openConnection()
-{
-	//connect to HIL
-	try {
-
-		mav_.connectToHIL(getConnectionInfo());
-	}
-	catch (std::exception ex) {
-
-		UAirBlueprintLib::LogMessage(FString("Connection to drone failed, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
-		UAirBlueprintLib::LogMessage(FString(ex.what()), TEXT(""), LogDebugLevel::Failure, 180);
-	}
-
-    try {
-        if (!mav_.connectToLogViewer()) {
-            UAirBlueprintLib::LogMessage(FString("Connection to LogViewer failed, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
-        }
-    }
-    catch (std::exception ex) {
-
-        UAirBlueprintLib::LogMessage(FString("Connection to LogViewer failed, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
-    }
-
-    try {
-        if (!mav_.connectToQGC()) {
-            UAirBlueprintLib::LogMessage(FString("Connection to QGroundControl failed, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
-        }
-    }
-    catch (std::exception ex) {
-
-        UAirBlueprintLib::LogMessage(FString("Connection to QGroundControl failed, please check your settings.json"), TEXT(""), LogDebugLevel::Failure, 180);
-    }
-}
-
-void MavMultiRotor::closeConnection()
-{
-	mav_.close();
-}
-
 void MavMultiRotor::updateRenderedState()
 {
 	//move collison info from rendering engine to vehicle
@@ -140,7 +99,7 @@ void MavMultiRotor::updateRenderedState()
 	}
 
 	//retrieve MavLink status messages
-	mav_.getStatusMessages(mav_messages_);
+    controller_->getStatusMessages(controller_messages_);
 }
 
 void MavMultiRotor::updateRendering()
@@ -150,8 +109,8 @@ void MavMultiRotor::updateRendering()
 		vehicle_pawn_->setRotorSpeed(i, rotor_speeds_[i] * rotor_directions_[i]);
 	}
 
-	for (auto i = 0; i < mav_messages_.size(); ++i) {
-		UAirBlueprintLib::LogMessage(FString(mav_messages_[i].c_str()), TEXT(""), LogDebugLevel::Success, 30);
+	for (auto i = 0; i < controller_messages_.size(); ++i) {
+		UAirBlueprintLib::LogMessage(FString(controller_messages_[i].c_str()), TEXT(""), LogDebugLevel::Success, 30);
 	}
 }
 
@@ -182,5 +141,5 @@ MavMultiRotor::UpdatableObject* MavMultiRotor::getPhysicsBody()
 
 msr::airlib::DroneControlBase* MavMultiRotor::createOrGetDroneControl()
 {
-	return mav_.createOrGetDroneControl();
+	return controller_->createOrGetDroneControl();
 }

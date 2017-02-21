@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "TcpClientPort.hpp"
 #include "Utils.hpp"
+#include "TcpClientPort.hpp"
 #include <boost/lexical_cast.hpp>
 using namespace common_utils;
 

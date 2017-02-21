@@ -51,17 +51,16 @@ public:
     virtual UpdatableObject* getPhysicsBody() override;
 
     //provides way to control the drone
-    msr::airlib::DroneControlBase* createOrGetDroneControl();
+    virtual msr::airlib::DroneControlBase* createOrGetDroneControl() override;
 
 private:
     msr::airlib::MavLinkHelper::HILConnectionInfo getConnectionInfo();
-    void openConnection();
-    void closeConnection();
+    void createController(MultiRotor& vehicle);
 
 private:
     MultiRotor vehicle_;
-    msr::airlib::MavLinkHelper mav_;
-    std::vector<std::string> mav_messages_;
+    std::unique_ptr<ControllerBase> controller_;
+    std::vector<std::string> controller_messages_;
     msr::airlib::Environment environment_;
     AFlyingPawn* vehicle_pawn_;
 

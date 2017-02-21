@@ -30,6 +30,7 @@ public:
 protected:
     typedef std::shared_ptr<VehicleBase> VehiclePtr;
     virtual void createVehicles(std::vector<VehiclePtr>& vehicles);
+    size_t getVehicleCount() const;
 
 private:
     void createWorld();

@@ -44,7 +44,7 @@ public:
 		//nothing to update in direct motor control
 	}
 
-    virtual real_T getRotorControlSignal(unsigned int rotor_index) override
+    virtual real_T getVertexControlSignal(unsigned int rotor_index) override
     {
         return motor_control_signals_.at(rotor_index);
     }

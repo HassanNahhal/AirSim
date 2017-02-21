@@ -14,7 +14,6 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include "Settings.h"
 
 namespace msr { namespace airlib {
 
@@ -30,33 +29,30 @@ public:
     typedef msr::airlib::real_T real_T;
     typedef msr::airlib::MultiRotor MultiRotor;
 
+    struct HILConnectionInfo {
+        /* Default values are requires so uninitialized instance doesn't have random values */
+        std::string vehicle_name = "Pixhawk";
+        bool use_serial = true; // false means use UDP instead
+
+        //needed only if use_serial = false
+        std::string ip_address = "127.0.0.1";
+        int ip_port = 14560;
+
+        //needed only if use_serial = true
+        std::string serial_port = "*";
+        int baud_rate = 115200;
+    };
+
+public:
     //required for pimpl
     MavLinkHelper();
     ~MavLinkHelper();
 
-	// Load mavlink specific settings from the given Settings file and update the
-	// Settings with any new settings that the settings file doesn't know about yet.
-	void loadSettings(Settings& settings);
-
-    struct HILConnectionInfo {
-
-        std::string vehicle_name;
-
-        bool use_serial; // false means use UDP instead
-
-        //needed only if use_serial = false
-        std::string ip_address;
-        int ip_port;
-
-        //needed only if use_serial = true
-        std::string serial_port;
-        int baud_rate;
-
-    };
-
+    void initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle);
+    HILConnectionInfo getHILConnectionInfo();
     int getRotorControlsCount();
     void connectToExternalSim();
-    void connectToHIL(const HILConnectionInfo& connection_info);
+    void connectToHIL();
     void connectToVideoServer();    
     bool connectToLogViewer();
     bool connectToQGC();
@@ -67,19 +63,20 @@ public:
     bool hasVideoRequest();
     void sendHILSensor(const Vector3r& acceleration, const Vector3r& gyro, const Vector3r& mag, float abs_pressure, float pressure_alt);
     void sendHILGps(const GeoPoint& geo_point, const Vector3r& velocity, float velocity_xy, float cog, float eph, float epv, int fix_type, unsigned int satellites_visible);
-    void getStatusMessages(std::vector<std::string>& messages);
     void close();
     void setNormalMode();
     void setHILMode();
-    std::string findPixhawk();
-    DroneControlBase* createOrGetDroneControl();
+    static std::string findPixhawk();
 
-    void initialize(const MultiRotor* vehicle);
-    virtual real_T getRotorControlSignal(unsigned int rotor_index) override;
     //*** Start: UpdatableState implementation ***//
     virtual void reset() override;
     virtual void update(real_T dt) override;
+    virtual void start() override;
+    virtual void stop() override;
     //*** End: UpdatableState implementation ***//
+    virtual real_T getVertexControlSignal(unsigned int rotor_index) override;
+    virtual void getStatusMessages(std::vector<std::string>& messages) override;
+    virtual DroneControlBase* createOrGetDroneControl() override;
 
     struct impl;
     std::unique_ptr<impl> pimpl_;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/UpdatableObject.hpp"
+#include "control/DroneControlBase.hpp"
 
 class VehicleBase : public msr::airlib::UpdatableObject
 {

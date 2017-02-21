@@ -19,14 +19,15 @@ void ASimModeWorldMultiRotor::BeginPlay()
 			rpclib_server_.reset(new msr::airlib::RpcLibServer(drone_control_server_.get(), server_address));
 			rpclib_server_->start();
 		}
-		catch (std::exception&) {
+		catch (std::exception& ex) {
+            UAirBlueprintLib::LogMessage("Cannot start RpcLib Server",  ex.what(), LogDebugLevel::Failure);
 		}
     }
 }
 
 void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
 {
-    if (fpv_vehicle_ != nullptr && drone_control_server_ != nullptr) {
+    if (fpv_vehicle_ != nullptr && drone_control_server_ != nullptr && getVehicleCount() > 0) {
         using namespace msr::airlib;
         auto camera_type = drone_control_server_->getImageTypeForCamera(0);
         if (camera_type != DroneControlBase::ImageType::None) { 
@@ -86,8 +87,6 @@ void ASimModeWorldMultiRotor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool ASimModeWorldMultiRotor::checkConnection()
 {
-	// [chris] problem with disabling createVehicles, is it leaves the game in a weird unresponsive state.
-	// we already check findPixhawk later anyway, so this check was redundant.
 	return true;
 }
 
@@ -97,23 +96,32 @@ void ASimModeWorldMultiRotor::createVehicles(std::vector<VehiclePtr>& vehicles)
         return;
 
     //get FPV drone
-    AActor* fpv_drone = nullptr;
+    AActor* fpv_pawn = nullptr;
     if (CameraDirector != nullptr) {
-        fpv_drone = CameraDirector->TargetPawn;
+        fpv_pawn = CameraDirector->TargetPawn;
     }
 
     //detect vehicles in the project and add them in simulation
     TArray<AActor*> pawns;
     UAirBlueprintLib::FindAllActor<AFlyingPawn>(this, pawns);
     for (AActor* pawn : pawns) {
-        auto vehicle = std::make_shared<MavMultiRotor>();
-        vehicle->initialize(static_cast<AFlyingPawn*>(pawn));
-        vehicles.push_back(std::static_pointer_cast<VehicleBase>(vehicle));
+        auto vehicle = createVehicle(static_cast<AFlyingPawn*>(pawn));
+        if (vehicle != nullptr) {
+            vehicles.push_back(vehicle);
 
-        if (pawn == fpv_drone) {
-            fpv_vehicle_ = vehicle;
+            if (pawn == fpv_pawn) {
+                fpv_vehicle_ = vehicle;
+            }
         }
+        //else we don't have vehicle for this pawn
     }
+}
+
+ASimModeWorldBase::VehiclePtr ASimModeWorldMultiRotor::createVehicle(AFlyingPawn* pawn)
+{
+    auto vehicle = std::make_shared<MavMultiRotor>();
+    vehicle->initialize(pawn);
+    return std::static_pointer_cast<VehicleBase>(vehicle);
 }
 
 

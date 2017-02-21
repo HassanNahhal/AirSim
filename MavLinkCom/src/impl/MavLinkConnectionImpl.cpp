@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#include "MavLinkConnectionImpl.hpp"
 #include "Utils.hpp"
+#include <boost/thread.hpp>
+#include "MavLinkConnectionImpl.hpp"
 #include "../serial_com/Port.h"
 #include "../serial_com/SerialPort.hpp"
 #include "../serial_com/UdpClientPort.hpp"
 #include "../serial_com/TcpClientPort.hpp"
-#include <boost/thread.hpp>
 #define MAVLINK_PACKED
 
 STRICT_MODE_OFF
@@ -298,7 +298,7 @@ void MavLinkConnectionImpl::readPackets()
                         std::lock_guard<std::mutex> guard(msg_queue_mutex_);
                         MavLinkMessage& message = reinterpret_cast<MavLinkMessage&>(msg);
                         msg_queue_.push(message);
-                        long size = msg_queue_.size();
+                        auto size = msg_queue_.size();
                         if (size > max_queue_length_) {
                             max_queue_length_ = size;
                         }
