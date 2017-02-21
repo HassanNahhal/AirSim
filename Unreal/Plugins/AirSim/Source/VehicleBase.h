@@ -18,4 +18,7 @@ public:
     virtual void updateRenderedState() = 0;
     //called when render changes are required
     virtual void updateRendering() = 0;
+
+    virtual msr::airlib::DroneControlBase* createOrGetDroneControl() = 0;
+
 };

@@ -13,9 +13,6 @@ class AIRSIM_API ASimModeWorldMultiRotor : public ASimModeWorldBase
     GENERATED_BODY()
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mode")
-    EVehicleType VehicleType = EVehicleType::VEHICLE_TYPE_STANDALONE;
-
     virtual void BeginPlay() override;
     virtual void Tick( float DeltaSeconds ) override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

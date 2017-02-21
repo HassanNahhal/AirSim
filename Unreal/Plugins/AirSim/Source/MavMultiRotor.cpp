@@ -18,7 +18,7 @@ void MavMultiRotor::initialize(AFlyingPawn* vehicle_pawn)
 	initial_environment.geo_point = vehicle_pawn_->getHomePoint();
 	initial_environment.min_z_over_ground = vehicle_pawn_->getMinZOverGround();
 	environment_.initialize(initial_environment);
-    createController();
+    createController(vehicle_);
 	vehicle_.initialize(Px4QuadX::Params(), initial_kinematics,
 		&environment_, controller_.get());
 }
