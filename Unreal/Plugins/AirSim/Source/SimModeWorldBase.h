@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include "VehicleBase.h"
+#include "VehicleConnectorBase.h"
 #include "physics/FastPhysicsEngine.hpp"
 #include "physics/World.hpp"
 #include "common/StateReporterWrapper.hpp"
@@ -28,7 +28,7 @@ public:
     virtual void setupInputBindings() override;
 
 protected:
-    typedef std::shared_ptr<VehicleBase> VehiclePtr;
+    typedef std::shared_ptr<VehicleConnectorBase> VehiclePtr;
     virtual void createVehicles(std::vector<VehiclePtr>& vehicles);
     size_t getVehicleCount() const;
 

@@ -121,7 +121,7 @@ ASimModeWorldBase::VehiclePtr ASimModeWorldMultiRotor::createVehicle(AFlyingPawn
 {
     auto vehicle = std::make_shared<MavMultiRotor>();
     vehicle->initialize(pawn);
-    return std::static_pointer_cast<VehicleBase>(vehicle);
+    return std::static_pointer_cast<VehicleConnectorBase>(vehicle);
 }
 
 

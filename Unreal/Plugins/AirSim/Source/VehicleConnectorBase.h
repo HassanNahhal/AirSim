@@ -3,7 +3,7 @@
 #include "common/UpdatableObject.hpp"
 #include "control/DroneControlBase.hpp"
 
-class VehicleBase : public msr::airlib::UpdatableObject
+class VehicleConnectorBase : public msr::airlib::UpdatableObject
 {
 public:
     typedef msr::airlib::UpdatableObject UpdatableObject;

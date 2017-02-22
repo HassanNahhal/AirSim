@@ -225,9 +225,6 @@
     <ClInclude Include="include\vehicles\RotorParams.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\control\MavLinkHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\control\DroneControlServer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -247,6 +244,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\common\common_utils\StrictMode.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\MavLinkController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -269,10 +269,10 @@
     <ClCompile Include="src\control\SafetyEval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\control\MavLinkHelper.cpp">
+    <ClCompile Include="src\control\Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\control\Settings.cpp">
+    <ClCompile Include="src\control\MavLinkController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

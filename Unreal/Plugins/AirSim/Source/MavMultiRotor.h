@@ -1,6 +1,6 @@
 #pragma once
 
-#include "control/MavLinkHelper.h"
+#include "control/MavLinkController.h"
 #include "vehicles/controllers/MotorDirectController.hpp"
 #include "vehicles/configs/Px4QuadX.hpp"
 #include "vehicles/MultiRotor.hpp"
@@ -8,11 +8,11 @@
 #include "common/Common.hpp"
 #include "common/CommonStructs.hpp"
 #include "control/DroneControlBase.hpp"
-#include "VehicleBase.h"
+#include "VehicleConnectorBase.h"
 #include "FlyingPawn.h"
 
 
-class MavMultiRotor : public VehicleBase
+class MavMultiRotor : public VehicleConnectorBase
 {
 public:
     typedef msr::airlib::GeoPoint GeoPoint;
@@ -35,7 +35,7 @@ public:
 public:
     virtual ~MavMultiRotor() = default;
 
-    //VehicleBase interface
+    //VehicleConnectorBase interface
     //implements game interface to update pawn
     void initialize(AFlyingPawn* vehicle_pawn);
     virtual void beginPlay() override;
@@ -54,7 +54,7 @@ public:
     virtual msr::airlib::DroneControlBase* createOrGetDroneControl() override;
 
 private:
-    msr::airlib::MavLinkHelper::HILConnectionInfo getConnectionInfo();
+    msr::airlib::MavLinkController::HILConnectionInfo getConnectionInfo();
     void createController(MultiRotor& vehicle);
 
 private:

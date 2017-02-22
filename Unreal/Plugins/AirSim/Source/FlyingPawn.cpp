@@ -42,9 +42,9 @@ void AFlyingPawn::setRotorSpeed(int rotor_index, float radsPerSec)
 		rotating_movements_[rotor_index]->RotationRate.Yaw = radsPerSec * 180.0f / M_PIf * RotatorFactor;
 }
 
-msr::airlib::MavLinkHelper::HILConnectionInfo AFlyingPawn::getHILConnectionInfo()
+msr::airlib::MavLinkController::HILConnectionInfo AFlyingPawn::getHILConnectionInfo()
 {
-	msr::airlib::MavLinkHelper::HILConnectionInfo connection_info;
+	msr::airlib::MavLinkController::HILConnectionInfo connection_info;
 	connection_info.vehicle_name = std::string(TCHAR_TO_UTF8(*VehicleName));
 	connection_info.use_serial = UseSerial;
 	connection_info.ip_address = std::string(TCHAR_TO_UTF8(*UdpIP));

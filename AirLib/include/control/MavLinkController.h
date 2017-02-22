@@ -18,7 +18,7 @@
 namespace msr { namespace airlib {
 
 
-class MavLinkHelper : public ControllerBase
+class MavLinkController : public ControllerBase
 {
 public:
     typedef msr::airlib::GeoPoint GeoPoint;
@@ -45,8 +45,8 @@ public:
 
 public:
     //required for pimpl
-    MavLinkHelper();
-    ~MavLinkHelper();
+    MavLinkController();
+    ~MavLinkController();
 
     void initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle);
     HILConnectionInfo getHILConnectionInfo();

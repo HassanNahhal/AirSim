@@ -54,8 +54,8 @@
     <ClInclude Include="include\control\DroneControlBase.hpp" />
     <ClInclude Include="include\control\DroneControlCommon.hpp" />
     <ClInclude Include="include\control\IGeoFence.hpp" />
+    <ClInclude Include="include\control\MavLinkController.h" />
     <ClInclude Include="include\control\MavLinkDroneControl.hpp" />
-    <ClInclude Include="include\control\MavLinkHelper.h" />
     <ClInclude Include="include\control\ObstacleMap.hpp" />
     <ClInclude Include="include\control\PidController.hpp" />
     <ClInclude Include="include\control\RpcLibAdapators.hpp" />
@@ -100,8 +100,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\control\DroneControlBase.cpp" />
+    <ClCompile Include="src\control\MavLinkController.cpp" />
     <ClCompile Include="src\control\MavLinkDroneControl.cpp" />
-    <ClCompile Include="src\control\MavLinkHelper.cpp" />
     <ClCompile Include="src\control\ObstacleMap.cpp" />
     <ClCompile Include="src\control\RpcLibClient.cpp" />
     <ClCompile Include="src\control\RpcLibServer.cpp" />

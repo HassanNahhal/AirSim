@@ -25,8 +25,8 @@ void MavMultiRotor::initialize(AFlyingPawn* vehicle_pawn)
 
 void MavMultiRotor::createController(MultiRotor& vehicle)
 {
-    controller_.reset(new MavLinkHelper());
-    auto mav_controller = static_cast<MavLinkHelper*>(controller_.get());
+    controller_.reset(new MavLinkController());
+    auto mav_controller = static_cast<MavLinkController*>(controller_.get());
     mav_controller->initialize(getConnectionInfo(), &vehicle);
 }
 
@@ -49,7 +49,7 @@ void MavMultiRotor::endPlay()
     controller_->stop();
 }
 
-msr::airlib::MavLinkHelper::HILConnectionInfo MavMultiRotor::getConnectionInfo()
+msr::airlib::MavLinkController::HILConnectionInfo MavMultiRotor::getConnectionInfo()
 {
 	auto connection_info = vehicle_pawn_->getHILConnectionInfo();
 

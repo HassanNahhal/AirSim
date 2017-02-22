@@ -8,7 +8,7 @@
 #include "AirSim.h"
 #endif
 
-#include "control/MavLinkHelper.h"
+#include "control/MavLinkController.h"
 #include <memory>
 #include <exception>
 
@@ -30,7 +30,7 @@ static const int pixhawkFMUV2OldBootloaderProductId = 22;     ///< Product ID fo
 static const int pixhawkFMUV1ProductId = 16;     ///< Product ID for PX4 FMU V1 board
 static const int RotorControlsCount = 8;
 
-struct MavLinkHelper::impl {
+struct MavLinkController::impl {
     std::shared_ptr<mavlinkcom::MavLinkNode> logviewer_proxy_, qgc_proxy_;
 
     // mavlink vehicle identifiers
@@ -181,7 +181,7 @@ struct MavLinkHelper::impl {
     {
         if (drone_control_ == nullptr) {
             if (connection_ == nullptr)
-                throw std::domain_error("MavLinkHelper requires connection object to be set before createOrGetDroneControl call");
+                throw std::domain_error("MavLinkController requires connection object to be set before createOrGetDroneControl call");
             drone_control_ = std::static_pointer_cast<DroneControlBase>(
                 std::make_shared<MavLinkDroneControl>(AirControlSysID, AirControlCompID, connection_));
         }
@@ -192,7 +192,7 @@ struct MavLinkHelper::impl {
     std::shared_ptr<mavlinkcom::MavLinkNode> createProxy(std::string name, std::string ip, int port)
     {
 		if (connection_ == nullptr)
-			throw std::domain_error("MavLinkHelper requires connection object to be set before createProxy call");
+			throw std::domain_error("MavLinkController requires connection object to be set before createProxy call");
 
         auto connection = MavLinkConnection::connectRemoteUdp("Proxy to: " + name + " at " + ip + ":" + std::to_string(port), LocalHostIp, ip, port);
 
@@ -629,123 +629,123 @@ struct MavLinkHelper::impl {
 };
 
 //empty constructor required for pimpl
-MavLinkHelper::MavLinkHelper()
+MavLinkController::MavLinkController()
 {
     pimpl_.reset(new impl());
 }
 
-MavLinkHelper::~MavLinkHelper()
+MavLinkController::~MavLinkController()
 {
     pimpl_->close();
 }
 
-void MavLinkHelper::initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle)
+void MavLinkController::initialize(const HILConnectionInfo& connection_info, const MultiRotor* vehicle)
 {
    pimpl_->initialize(connection_info, vehicle);
 }
 
-MavLinkHelper::HILConnectionInfo MavLinkHelper::getHILConnectionInfo()
+MavLinkController::HILConnectionInfo MavLinkController::getHILConnectionInfo()
 {
     return pimpl_->getHILConnectionInfo();
 }
 
-int MavLinkHelper::getRotorControlsCount()
+int MavLinkController::getRotorControlsCount()
 {
     return RotorControlsCount;
 }
-void MavLinkHelper::connectToExternalSim()
+void MavLinkController::connectToExternalSim()
 {
     pimpl_->connectToExternalSim();
 }
-void MavLinkHelper::connectToHIL()
+void MavLinkController::connectToHIL()
 {
     pimpl_->connectToHIL();
 }
-bool MavLinkHelper::connectToLogViewer()
+bool MavLinkController::connectToLogViewer()
 {
     return pimpl_->connectToLogViewer();
 }
-bool MavLinkHelper::connectToQGC()
+bool MavLinkController::connectToQGC()
 {
     return pimpl_->connectToQGC();
 }
-void MavLinkHelper::connectToVideoServer()
+void MavLinkController::connectToVideoServer()
 {
     pimpl_->connectToVideoServer();
 }
-void MavLinkHelper::sendImage(unsigned char data[], uint32_t length, uint16_t width, uint16_t height)
+void MavLinkController::sendImage(unsigned char data[], uint32_t length, uint16_t width, uint16_t height)
 {
     pimpl_->sendImage(data, length, width, height);
 }
-void MavLinkHelper::getMocapPose(Vector3r& position, Quaternionr& orientation)
+void MavLinkController::getMocapPose(Vector3r& position, Quaternionr& orientation)
 {
     pimpl_->getMocapPose(position, orientation);
 }
-void MavLinkHelper::sendMocapPose(const Vector3r& position, const Quaternionr& orientation)
+void MavLinkController::sendMocapPose(const Vector3r& position, const Quaternionr& orientation)
 {
     pimpl_->sendMocapPose(position, orientation);
 }
-void MavLinkHelper::sendCollison(float normalX, float normalY, float normalZ)
+void MavLinkController::sendCollison(float normalX, float normalY, float normalZ)
 {
     pimpl_->sendCollison(normalX, normalY, normalZ);
 }
-bool MavLinkHelper::hasVideoRequest()
+bool MavLinkController::hasVideoRequest()
 {
     return pimpl_->hasVideoRequest();
 }
-void MavLinkHelper::sendHILSensor(const Vector3r& acceleration, const Vector3r& gyro, const Vector3r& mag, float abs_pressure, float pressure_alt)
+void MavLinkController::sendHILSensor(const Vector3r& acceleration, const Vector3r& gyro, const Vector3r& mag, float abs_pressure, float pressure_alt)
 {
     pimpl_->sendHILSensor(acceleration, gyro, mag, abs_pressure, pressure_alt);
 }
-void MavLinkHelper::sendHILGps(const GeoPoint& geo_point, const Vector3r& velocity, float velocity_xy, float cog, float eph, float epv, int fix_type, unsigned int satellites_visible)
+void MavLinkController::sendHILGps(const GeoPoint& geo_point, const Vector3r& velocity, float velocity_xy, float cog, float eph, float epv, int fix_type, unsigned int satellites_visible)
 {
     pimpl_->sendHILGps(geo_point, velocity, velocity_xy, cog, eph, epv, fix_type, satellites_visible);
 }
-void MavLinkHelper::getStatusMessages(std::vector<std::string>& messages)
+void MavLinkController::getStatusMessages(std::vector<std::string>& messages)
 {
     pimpl_->getStatusMessages(messages);
 }
-void MavLinkHelper::close()
+void MavLinkController::close()
 {
     pimpl_->close();
 }
-void MavLinkHelper::setNormalMode()
+void MavLinkController::setNormalMode()
 {
     pimpl_->setNormalMode();
 }
-void MavLinkHelper::setHILMode()
+void MavLinkController::setHILMode()
 {
     pimpl_->setHILMode();
 }
-std::string MavLinkHelper::findPixhawk()
+std::string MavLinkController::findPixhawk()
 {
     return impl::findPixhawk();
 }
 
-DroneControlBase* MavLinkHelper::createOrGetDroneControl()
+DroneControlBase* MavLinkController::createOrGetDroneControl()
 {
     return pimpl_->createOrGetDroneControl();
 }
 
 
 //*** Start: ControllerBase implementation ***//
-void MavLinkHelper::reset()
+void MavLinkController::reset()
 {
     pimpl_->reset();
 }
-void MavLinkHelper::update(real_T dt)
+void MavLinkController::update(real_T dt)
 {
     pimpl_->update(dt);
 }
-real_T MavLinkHelper::getVertexControlSignal(unsigned int rotor_index)
+real_T MavLinkController::getVertexControlSignal(unsigned int rotor_index)
 {
     return pimpl_->getVertexControlSignal(rotor_index);
 }
-void MavLinkHelper::start()
+void MavLinkController::start()
 {
     pimpl_->start();
 }
-void MavLinkHelper::stop()
+void MavLinkController::stop()
 {
     pimpl_->stop();
 }
