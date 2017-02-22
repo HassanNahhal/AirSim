@@ -4,7 +4,7 @@
 #ifndef air_MavLinkDroneControl_hpp
 #define air_MavLinkDroneControl_hpp
 
-#include "control/DroneControlBase.hpp"
+#include "control/DroneControllerBase.hpp"
 #include "common/Common.hpp"
 #include "MavLinkVehicle.hpp"
 #include "MavLinkConnection.hpp"
@@ -14,7 +14,7 @@ namespace msr { namespace airlib {
    
 /// This class uses AirSim/MavLinkCom library to talk to a mavlink connected drone.
 /// (like the Pixhawk based DIY drones).  See https://github.com/mavlink/mavlink.
-class MavLinkDroneControl : public DroneControlBase {
+class MavLinkDroneControl : public DroneControllerBase {
 public:
     //TODO: create common struct for below
     struct Parameters {

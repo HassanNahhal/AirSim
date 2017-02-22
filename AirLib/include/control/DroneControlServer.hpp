@@ -5,7 +5,7 @@
 #define air_DroneControlServer_hpp
 
 #include "common/Common.hpp"
-#include "control/DroneControlBase.hpp"
+#include "control/DroneControllerBase.hpp"
 #include "Waiter.hpp"
 #include "control/CubeGeoFence.hpp"
 #include <atomic>
@@ -14,7 +14,7 @@ namespace msr { namespace airlib {
 
 class DroneControlServer : CancelableActionBase {
 public:
-    DroneControlServer(DroneControlBase* drone)
+    DroneControlServer(DroneControllerBase* drone)
         :drone_(drone), is_cancelled_(false)
     {
         //auto vehicle_params = drone_->getVehicleParams();
@@ -128,50 +128,50 @@ public:
     //TODO: add single call to get all of the state
     Vector3r getPosition()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getPosition();
     }
 
     Vector3r getVelocity()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getVelocity();
     }
 
     Quaternionr getOrientation()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getOrientation();
     }
 
     RCData getRCData()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getRCData();
     }
 
     double timestampNow()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->timestampNow();
     }
 
     GeoPoint getHomePoint()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getHomePoint();
     }
 
     //TODO: add GPS health, accuracy in API
     GeoPoint getGpsLocation()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getGpsLocation();
     }
 
     bool isOffboardMode()
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->isOffboardMode();
     }
 
@@ -182,25 +182,25 @@ public:
 
 
     //request image
-    bool setImageTypeForCamera(int camera_id, DroneControlBase::ImageType type)
+    bool setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type)
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->setImageTypeForCamera(camera_id, type);
     }
-    DroneControlBase::ImageType getImageTypeForCamera(int camera_id)
+    DroneControllerBase::ImageType getImageTypeForCamera(int camera_id)
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getImageTypeForCamera(camera_id);
     }
     //get/set image
-    bool setImageForCamera(int camera_id, DroneControlBase::ImageType type, const vector<uint8_t>& image)
+    bool setImageForCamera(int camera_id, DroneControllerBase::ImageType type, const vector<uint8_t>& image)
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->setImageForCamera(camera_id, type, image);
     }
-    vector<uint8_t> getImageForCamera(int camera_id, DroneControlBase::ImageType type)
+    vector<uint8_t> getImageForCamera(int camera_id, DroneControllerBase::ImageType type)
     {
-        DroneControlBase::StatusLock lock(drone_);
+        DroneControllerBase::StatusLock lock(drone_);
         return drone_->getImageForCamera(camera_id, type);
     }
 
@@ -245,7 +245,7 @@ private:// types
     };
 
 private: //vars
-    DroneControlBase* drone_;
+    DroneControllerBase* drone_;
     std::atomic_bool is_cancelled_;
     std::mutex action_mutex_;
 };

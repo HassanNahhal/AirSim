@@ -13,11 +13,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "control/DroneControlBase.hpp"
+#include "control/DroneControllerBase.hpp"
 
 namespace msr { namespace airlib {
 
-float DroneControlBase::getAutoLookahead(float velocity, float adaptive_lookahead,
+float DroneControllerBase::getAutoLookahead(float velocity, float adaptive_lookahead,
         float max_factor, float min_factor)
 {
     //if auto mode requested for lookahead then calculate based on velocity
@@ -27,17 +27,17 @@ float DroneControlBase::getAutoLookahead(float velocity, float adaptive_lookahea
     return lookahead;
 }
 
-float DroneControlBase::getObsAvoidanceVelocity(float risk_dist, float max_obs_avoidance_vel)
+float DroneControllerBase::getObsAvoidanceVelocity(float risk_dist, float max_obs_avoidance_vel)
 {
     return max_obs_avoidance_vel;
 }
 
-void DroneControlBase::setSafetyEval(const shared_ptr<SafetyEval> safety_eval_ptr)
+void DroneControllerBase::setSafetyEval(const shared_ptr<SafetyEval> safety_eval_ptr)
 {
     safety_eval_ptr_ = safety_eval_ptr;
 }
 
-bool DroneControlBase::moveByAngle(float pitch, float roll, float z, float yaw, float duration
+bool DroneControllerBase::moveByAngle(float pitch, float roll, float z, float yaw, float duration
     , CancelableActionBase& cancelable_action)
 {
     if (duration <= 0)
@@ -48,7 +48,7 @@ bool DroneControlBase::moveByAngle(float pitch, float roll, float z, float yaw, 
     }, duration, cancelable_action);
 }
 
-bool DroneControlBase::moveByVelocity(float vx, float vy, float vz, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
+bool DroneControllerBase::moveByVelocity(float vx, float vy, float vz, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
     CancelableActionBase& cancelable_action)
 {
     if (duration <= 0)
@@ -62,7 +62,7 @@ bool DroneControlBase::moveByVelocity(float vx, float vy, float vz, float durati
     }, duration, cancelable_action);
 }
 
-bool DroneControlBase::moveByVelocityZ(float vx, float vy, float z, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
+bool DroneControllerBase::moveByVelocityZ(float vx, float vy, float z, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
     CancelableActionBase& cancelable_action)
 {
     if (duration <= 0)
@@ -77,7 +77,7 @@ bool DroneControlBase::moveByVelocityZ(float vx, float vy, float z, float durati
 
 }
 
-bool DroneControlBase::moveOnPath(const vector<Vector3r>& path, float velocity, DrivetrainType drivetrain, const YawMode& yaw_mode,
+bool DroneControllerBase::moveOnPath(const vector<Vector3r>& path, float velocity, DrivetrainType drivetrain, const YawMode& yaw_mode,
     float lookahead, float adaptive_lookahead, CancelableActionBase& cancelable_action)
 {
     //validate path size
@@ -249,14 +249,14 @@ bool DroneControlBase::moveOnPath(const vector<Vector3r>& path, float velocity, 
     return true;
 }
 
-bool DroneControlBase::moveToPosition(float x, float y, float z, float velocity, DrivetrainType drivetrain,
+bool DroneControllerBase::moveToPosition(float x, float y, float z, float velocity, DrivetrainType drivetrain,
     const YawMode& yaw_mode, float lookahead, float adaptive_lookahead, CancelableActionBase& cancelable_action)
 {
     vector<Vector3r> path { Vector3r(x, y, z) };
     return moveOnPath(path, velocity, drivetrain, yaw_mode, lookahead, adaptive_lookahead, cancelable_action);
 }
 
-bool DroneControlBase::moveToZ(float z, float velocity, const YawMode& yaw_mode,
+bool DroneControllerBase::moveToZ(float z, float velocity, const YawMode& yaw_mode,
     float lookahead, float adaptive_lookahead, CancelableActionBase& cancelable_action)
 {
     Vector2r cur_xy = getPositionXY();
@@ -265,7 +265,7 @@ bool DroneControlBase::moveToZ(float z, float velocity, const YawMode& yaw_mode,
         cancelable_action);
 }
 
-bool DroneControlBase::rotateToYaw(float yaw, float margin, CancelableActionBase& cancelable_action)
+bool DroneControllerBase::rotateToYaw(float yaw, float margin, CancelableActionBase& cancelable_action)
 {
     YawMode yaw_mode(false, VectorMath::normalizeAngleDegrees(yaw));
     Waiter waiter(getCommandPeriod());
@@ -284,7 +284,7 @@ bool DroneControlBase::rotateToYaw(float yaw, float margin, CancelableActionBase
     return true;
 }
 
-bool DroneControlBase::rotateByYawRate(float yaw_rate, float duration, CancelableActionBase& cancelable_action)
+bool DroneControllerBase::rotateByYawRate(float yaw_rate, float duration, CancelableActionBase& cancelable_action)
 {
     if (duration <= 0)
         return true;
@@ -303,12 +303,12 @@ bool DroneControlBase::rotateByYawRate(float yaw_rate, float duration, Cancelabl
     return waiter.is_timeout();
 }
 
-bool DroneControlBase::hover(CancelableActionBase& cancelable_action)
+bool DroneControllerBase::hover(CancelableActionBase& cancelable_action)
 {
     return moveToZ(getZ(), 0.5f, YawMode{ true,0 }, 1.0f, false, cancelable_action);
 }
 
-bool DroneControlBase::moveByVelocity(float vx, float vy, float vz, const YawMode& yaw_mode)
+bool DroneControllerBase::moveByVelocity(float vx, float vy, float vz, const YawMode& yaw_mode)
 {
     if (safetyCheckVelocity(Vector3r(vx, vy, vz)))
         commandVelocity(vx, vy, vz, yaw_mode);
@@ -316,7 +316,7 @@ bool DroneControlBase::moveByVelocity(float vx, float vy, float vz, const YawMod
     return true;
 }
 
-bool DroneControlBase::moveByVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode)
+bool DroneControllerBase::moveByVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode)
 {
     if (safetyCheckVelocityZ(vx, vy, z))
         commandVelocityZ(vx, vy, z, yaw_mode);
@@ -324,7 +324,7 @@ bool DroneControlBase::moveByVelocityZ(float vx, float vy, float z, const YawMod
     return true;
 }
 
-bool DroneControlBase::moveToPosition(const Vector3r& dest, const YawMode& yaw_mode)
+bool DroneControllerBase::moveToPosition(const Vector3r& dest, const YawMode& yaw_mode)
 {
     if (safetyCheckDestination(dest))
         commandPosition(dest.x(), dest.y(), dest.z(), yaw_mode);
@@ -332,7 +332,7 @@ bool DroneControlBase::moveToPosition(const Vector3r& dest, const YawMode& yaw_m
     return true;
 }
 
-bool DroneControlBase::moveByRollPitchZ(float pitch, float roll, float z, float yaw)
+bool DroneControllerBase::moveByRollPitchZ(float pitch, float roll, float z, float yaw)
 {
     if (safetyCheckVelocity(getVelocity()))
         commandRollPitchZ(pitch, roll, z, yaw);
@@ -340,7 +340,7 @@ bool DroneControlBase::moveByRollPitchZ(float pitch, float roll, float z, float 
     return true;
 }
 
-bool DroneControlBase::setSafety(SafetyEval::SafetyViolationType enable_reasons, float obs_clearance, SafetyEval::ObsAvoidanceStrategy obs_startegy, 
+bool DroneControllerBase::setSafety(SafetyEval::SafetyViolationType enable_reasons, float obs_clearance, SafetyEval::ObsAvoidanceStrategy obs_startegy, 
     float obs_avoidance_vel, const Vector3r& origin, float xy_length, float max_z, float min_z)
 {
     if (safety_eval_ptr_ == nullptr)
@@ -355,7 +355,7 @@ bool DroneControlBase::setSafety(SafetyEval::SafetyViolationType enable_reasons,
     return true;
 }
 
-bool DroneControlBase::moveByManual(float vx_max, float vy_max, float z_min, DrivetrainType drivetrain, const YawMode& yaw_mode, float duration, CancelableActionBase& cancelable_action)
+bool DroneControllerBase::moveByManual(float vx_max, float vy_max, float z_min, DrivetrainType drivetrain, const YawMode& yaw_mode, float duration, CancelableActionBase& cancelable_action)
 {
     const float kMaxMessageAge = 1, kMaxVelocity = 2, trim_duration = 1, kMinCountForTrim = 10, kMaxTrim = 100, kMaxRCValue = 10000;
 
@@ -411,7 +411,7 @@ bool DroneControlBase::moveByManual(float vx_max, float vy_max, float z_min, Dri
                 float vz = (rc_data.throttle / kMaxRCValue) * z_min + getZ();
                 moveByVelocityZ(vel_body.x(), vel_body.y(), vz, adj_yaw_mode);
             }
-            catch(const DroneControlBase::UnsafeMoveException& ex) {
+            catch(const DroneControllerBase::UnsafeMoveException& ex) {
                 Utils::logError("Safety violation: %s", ex.result.message.c_str());
             }
         }
@@ -423,19 +423,19 @@ bool DroneControlBase::moveByManual(float vx_max, float vy_max, float z_min, Dri
     return waiter.is_timeout();
 }
 
-Vector2r DroneControlBase::getPositionXY()
+Vector2r DroneControllerBase::getPositionXY()
 {
     const Vector3r& cur_loc3 = getPosition();
     Vector2r cur_loc(cur_loc3.x(), cur_loc3.y());
     return cur_loc;
 }
 
-float DroneControlBase::getZ()
+float DroneControllerBase::getZ()
 {
     return getPosition().z();
 }
 
-bool DroneControlBase::waitForFunction(WaitFunction function, float max_wait_seconds, CancelableActionBase& cancelable_action)
+bool DroneControllerBase::waitForFunction(WaitFunction function, float max_wait_seconds, CancelableActionBase& cancelable_action)
 {
     if (max_wait_seconds < 0)
     {
@@ -453,7 +453,7 @@ bool DroneControlBase::waitForFunction(WaitFunction function, float max_wait_sec
     return found;
 }
 
-bool DroneControlBase::waitForZ(float max_wait_seconds, float z, float margin, CancelableActionBase& cancelable_action)
+bool DroneControllerBase::waitForZ(float max_wait_seconds, float z, float margin, CancelableActionBase& cancelable_action)
 {
     float cur_z = 100000;
     if (!waitForFunction([&]() {
@@ -469,7 +469,7 @@ bool DroneControlBase::waitForZ(float max_wait_seconds, float z, float margin, C
 }
 
 
-bool DroneControlBase::emergencyManeuverIfUnsafe(const SafetyEval::EvalResult& result)
+bool DroneControllerBase::emergencyManeuverIfUnsafe(const SafetyEval::EvalResult& result)
 {
     if (!result.is_safe) {
         if (result.reason == SafetyEval::SafetyViolationType_::Obstacle) {
@@ -496,7 +496,7 @@ bool DroneControlBase::emergencyManeuverIfUnsafe(const SafetyEval::EvalResult& r
     return true;
 }
 
-bool DroneControlBase::safetyCheckVelocity(const Vector3r& velocity)
+bool DroneControllerBase::safetyCheckVelocity(const Vector3r& velocity)
 {
     if (safety_eval_ptr_ == nullptr) //safety checks disabled
         return true;
@@ -504,7 +504,7 @@ bool DroneControlBase::safetyCheckVelocity(const Vector3r& velocity)
     const auto& result = safety_eval_ptr_->isSafeVelocity(getPosition(), velocity, getOrientation());
     return emergencyManeuverIfUnsafe(result);
 }
-bool DroneControlBase::safetyCheckVelocityZ(float vx, float vy, float z)
+bool DroneControllerBase::safetyCheckVelocityZ(float vx, float vy, float z)
 {
     if (safety_eval_ptr_ == nullptr) //safety checks disabled
         return true;
@@ -512,7 +512,7 @@ bool DroneControlBase::safetyCheckVelocityZ(float vx, float vy, float z)
     const auto& result = safety_eval_ptr_->isSafeVelocityZ(getPosition(), vx, vy, z, getOrientation());
     return emergencyManeuverIfUnsafe(result);
 }
-bool DroneControlBase::safetyCheckDestination(const Vector3r& dest_pos)
+bool DroneControllerBase::safetyCheckDestination(const Vector3r& dest_pos)
 {
     if (safety_eval_ptr_ == nullptr) //safety checks disabled
         return true;
@@ -521,7 +521,7 @@ bool DroneControlBase::safetyCheckDestination(const Vector3r& dest_pos)
     return emergencyManeuverIfUnsafe(result);
 }    
 
-void DroneControlBase::logHomePoint()
+void DroneControllerBase::logHomePoint()
 {
     GeoPoint homepoint = getHomePoint();
     if (std::isnan(homepoint.longitude))
@@ -530,7 +530,7 @@ void DroneControlBase::logHomePoint()
         Utils::logMessage(homepoint.to_string().c_str());
 }
 
-float DroneControlBase::setNextPathPosition(const vector<Vector3r>& path, const vector<PathSegment>& path_segs,
+float DroneControllerBase::setNextPathPosition(const vector<Vector3r>& path, const vector<PathSegment>& path_segs,
     const PathPosition& cur_path_loc, float next_dist, PathPosition& next_path_loc)
 {
     //note: cur_path_loc and next_path_loc may both point to same object
@@ -564,7 +564,7 @@ float DroneControlBase::setNextPathPosition(const vector<Vector3r>& path, const 
     return next_dist;
 }
 
-void DroneControlBase::adjustYaw(const Vector3r& heading, DrivetrainType drivetrain, YawMode& yaw_mode)
+void DroneControllerBase::adjustYaw(const Vector3r& heading, DrivetrainType drivetrain, YawMode& yaw_mode)
 {
     //adjust yaw for the direction of travel in foward-only mode
     if (drivetrain == DrivetrainType::ForwardOnly && !yaw_mode.is_rate) {
@@ -578,11 +578,11 @@ void DroneControlBase::adjustYaw(const Vector3r& heading, DrivetrainType drivetr
     //else no adjustment needed
 }
 
-void DroneControlBase::adjustYaw(float x, float y, DrivetrainType drivetrain, YawMode& yaw_mode) {
+void DroneControllerBase::adjustYaw(float x, float y, DrivetrainType drivetrain, YawMode& yaw_mode) {
     adjustYaw(Vector3r(x, y, 0), drivetrain, yaw_mode);
 }
 
-void DroneControlBase::moveToPathPosition(const Vector3r& dest, float velocity, DrivetrainType drivetrain, /* pass by value */ YawMode yaw_mode, float last_z)
+void DroneControllerBase::moveToPathPosition(const Vector3r& dest, float velocity, DrivetrainType drivetrain, /* pass by value */ YawMode yaw_mode, float last_z)
 {
     //validate dest
     if (dest.hasNaN())
@@ -622,13 +622,13 @@ void DroneControlBase::moveToPathPosition(const Vector3r& dest, float velocity, 
         moveByVelocity(velocity_vect.x(), velocity_vect.y(), velocity_vect.z(), yaw_mode);
 }
 
-bool DroneControlBase::isYawWithinMargin(float yaw_target, float margin)
+bool DroneControllerBase::isYawWithinMargin(float yaw_target, float margin)
 {
     const float yaw_current = VectorMath::getYaw(getOrientation()) * 180 / M_PIf;
     return std::abs(yaw_current - yaw_target) <= margin;
 }    
 
-bool DroneControlBase::setImageTypeForCamera(int camera_id, ImageType type)
+bool DroneControllerBase::setImageTypeForCamera(int camera_id, ImageType type)
 {
     if (type == ImageType::None)
         enabled_images.erase(camera_id);
@@ -638,7 +638,7 @@ bool DroneControlBase::setImageTypeForCamera(int camera_id, ImageType type)
     return true;
 }
 
-DroneControlBase::ImageType DroneControlBase::getImageTypeForCamera(int camera_id)
+DroneControllerBase::ImageType DroneControllerBase::getImageTypeForCamera(int camera_id)
 {
     auto it = enabled_images.find(camera_id);
     if (it != enabled_images.end())
@@ -646,7 +646,7 @@ DroneControlBase::ImageType DroneControlBase::getImageTypeForCamera(int camera_i
     return ImageType::None;
 }
 
-bool DroneControlBase::setImageForCamera(int camera_id, ImageType type, const vector<uint8_t>& image)
+bool DroneControllerBase::setImageForCamera(int camera_id, ImageType type, const vector<uint8_t>& image)
 {
     //TODO: perf work
     auto it = images.find(camera_id);
@@ -660,7 +660,7 @@ bool DroneControlBase::setImageForCamera(int camera_id, ImageType type, const ve
     return true;
 }
 
-vector<uint8_t> DroneControlBase::getImageForCamera(int camera_id, ImageType type)
+vector<uint8_t> DroneControllerBase::getImageForCamera(int camera_id, ImageType type)
 {
     //TODO: bug: MSGPACK bombs out if vector if of 0 size
     static vector<uint8_t> empty_vec(1);

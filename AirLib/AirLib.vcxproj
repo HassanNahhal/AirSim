@@ -51,10 +51,10 @@
     <ClInclude Include="include\common\common_utils\AsyncTasker.hpp" />
     <ClInclude Include="include\control\ControlServerBase.hpp" />
     <ClInclude Include="include\control\CubeGeoFence.hpp" />
-    <ClInclude Include="include\control\DroneControlBase.hpp" />
+    <ClInclude Include="include\control\DroneControllerBase.hpp" />
     <ClInclude Include="include\control\DroneControlCommon.hpp" />
     <ClInclude Include="include\control\IGeoFence.hpp" />
-    <ClInclude Include="include\control\MavLinkController.h" />
+    <ClInclude Include="include\control\controllers\MavLinkController.hpp" />
     <ClInclude Include="include\control\MavLinkDroneControl.hpp" />
     <ClInclude Include="include\control\ObstacleMap.hpp" />
     <ClInclude Include="include\control\PidController.hpp" />
@@ -65,6 +65,7 @@
     <ClInclude Include="include\control\DroneControlServer.hpp" />
     <ClInclude Include="include\control\Settings.h" />
     <ClInclude Include="include\control\SphereGeoFence.hpp" />
+    <ClInclude Include="include\control\VehicleControllerBase.hpp" />
     <ClInclude Include="include\control\Waiter.hpp" />
     <ClInclude Include="include\physics\Environment.hpp" />
     <ClInclude Include="include\physics\FastPhysicsEngine.hpp" />
@@ -88,19 +89,19 @@
     <ClInclude Include="include\sensors\SensorBase.hpp" />
     <ClInclude Include="include\vehicles\configs\Firefly.hpp" />
     <ClInclude Include="include\vehicles\configs\Px4QuadX.hpp" />
-    <ClInclude Include="include\vehicles\controllers\ControllerBase.hpp" />
-    <ClInclude Include="include\vehicles\controllers\MotorDirectController.hpp" />
-    <ClInclude Include="include\vehicles\controllers\MotorDirectControllerParams.hpp" />
-    <ClInclude Include="include\vehicles\controllers\RpyDirectController.hpp" />
-    <ClInclude Include="include\vehicles\controllers\RpyDirectControllerParams.hpp" />
+    <ClInclude Include="include\control\ControllerBase.hpp" />
+    <ClInclude Include="include\control\controllers\MotorDirectController.hpp" />
+    <ClInclude Include="include\control\controllers\MotorDirectControllerParams.hpp" />
+    <ClInclude Include="include\control\controllers\RpyDirectController.hpp" />
+    <ClInclude Include="include\control\controllers\RpyDirectControllerParams.hpp" />
     <ClInclude Include="include\vehicles\MultiRotor.hpp" />
     <ClInclude Include="include\vehicles\MultiRotorParams.hpp" />
     <ClInclude Include="include\vehicles\Rotor.hpp" />
     <ClInclude Include="include\vehicles\RotorParams.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\control\DroneControlBase.cpp" />
-    <ClCompile Include="src\control\MavLinkController.cpp" />
+    <ClCompile Include="src\control\DroneControllerBase.cpp" />
+    <ClCompile Include="src\control\controllers\MavLinkController.cpp" />
     <ClCompile Include="src\control\MavLinkDroneControl.cpp" />
     <ClCompile Include="src\control\ObstacleMap.cpp" />
     <ClCompile Include="src\control\RpcLibClient.cpp" />

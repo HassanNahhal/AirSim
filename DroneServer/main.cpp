@@ -53,8 +53,8 @@ int main(int argc, const char* argv[])
     msr::airlib::RpcLibServer server(&server_wrapper, server_address);
     
     auto v = std::vector<msr::airlib::uint8_t>{ 5, 4, 3 };
-    server_wrapper.setImageForCamera(3, DroneControlBase::ImageType::Depth, v);
-    server_wrapper.setImageForCamera(4, DroneControlBase::ImageType::Scene, std::vector<msr::airlib::uint8_t>{6, 5, 4, 3, 2});
+    server_wrapper.setImageForCamera(3, DroneControllerBase::ImageType::Depth, v);
+    server_wrapper.setImageForCamera(4, DroneControllerBase::ImageType::Scene, std::vector<msr::airlib::uint8_t>{6, 5, 4, 3, 2});
     
     std::cout << "Server started at " << server_address << ":" << params.udpPort << std::endl;
     server.start(true);

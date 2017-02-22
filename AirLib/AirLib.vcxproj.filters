@@ -99,9 +99,6 @@
     <ClInclude Include="include\control\CubeGeoFence.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\control\DroneControlBase.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\control\DroneControlCommon.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -198,21 +195,6 @@
     <ClInclude Include="include\vehicles\configs\Px4QuadX.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vehicles\controllers\ControllerBase.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vehicles\controllers\MotorDirectController.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vehicles\controllers\MotorDirectControllerParams.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vehicles\controllers\RpyDirectController.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vehicles\controllers\RpyDirectControllerParams.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vehicles\MultiRotor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -246,14 +228,32 @@
     <ClInclude Include="include\common\common_utils\StrictMode.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\control\MavLinkController.h">
+    <ClInclude Include="include\control\ControllerBase.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\controllers\MotorDirectController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\controllers\MotorDirectControllerParams.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\controllers\RpyDirectController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\controllers\RpyDirectControllerParams.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\controllers\MavLinkController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\VehicleControllerBase.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\control\DroneControllerBase.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\control\DroneControlBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\control\MavLinkDroneControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -272,7 +272,10 @@
     <ClCompile Include="src\control\Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\control\MavLinkController.cpp">
+    <ClCompile Include="src\control\controllers\MavLinkController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control\DroneControllerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

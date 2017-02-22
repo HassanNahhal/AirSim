@@ -9,13 +9,14 @@
 #include "Waiter.hpp"
 #include "control/SafetyEval.hpp"
 #include "common/CommonStructs.hpp"
+#include "VehicleControllerBase.hpp"
 #include "DroneControlCommon.hpp"
 
 namespace msr { namespace airlib {
 
 //This interface represents generic drone commands
 //RETURN values: true if not prempted else false. For error conditions, raise exceptions.
-class DroneControlBase {
+class DroneControllerBase : public VehicleControllerBase {
 public: //types
     class UnsafeMoveException : public MoveException {
     public:
@@ -27,13 +28,13 @@ public: //types
     };
 
     struct StatusLock {
-        StatusLock(DroneControlBase* drone)
+        StatusLock(DroneControllerBase* drone)
             : drone_(drone), lock_(drone->status_mutex_)
         {
         }
 
     private:
-        DroneControlBase* drone_;
+        DroneControllerBase* drone_;
         std::lock_guard<std::recursive_mutex> lock_;
     };
 
@@ -56,32 +57,15 @@ public: //interface for outside world
     virtual bool land(CancelableActionBase& cancelable_action) = 0;
     virtual bool goHome(CancelableActionBase& cancelable_action) = 0;
 
-    /** \brief Move drone by specifieng roll, pitch angles in degrees, z in meters (NED) and yaw in degree.
-    * \param cancelable_action This object implements preemptible sleep and allows to specify when is it safe to preempt 
-    * \return true if completed without preempting else false
-    * 
-    * This method by itself will block until it finishes the execution OR cancelable_action signals for preempt.
-    * This method can be called from ROS action server that runs on separate thread for non-blocking implementation. 
-    */
+
     virtual bool moveByAngle(float pitch, float roll, float z, float yaw, float duration
         , CancelableActionBase& cancelable_action);
-
-    /**
-    * \brief Move drone by specifieng velocty components in 3 axis wrt to ground for given amount of time
-    */
     virtual bool moveByVelocity(float vx, float vy, float vz, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
         CancelableActionBase& cancelable_action);
-
-    /**
-    * \brief Move drone by specifieng velocty components in X-Y plan wrt to ground while maintaining hight
-    */
     virtual bool moveByVelocityZ(float vx, float vy, float z, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
         CancelableActionBase& cancelable_action);
     virtual bool moveOnPath(const vector<Vector3r>& path, float velocity, DrivetrainType drivetrain, const YawMode& yaw_mode,
         float lookahead, float adaptive_lookahead, CancelableActionBase& cancelable_action);
-
-    /** \brief Move drone to position specified in NEU local coordinate system.
-    */
     virtual bool moveToPosition(float x, float y, float z, float velocity, DrivetrainType drivetrain,
         const YawMode& yaw_mode, float lookahead, float adaptive_lookahead, CancelableActionBase& cancelable_action);
     virtual bool moveToZ(float z, float velocity, const YawMode& yaw_mode,
@@ -116,8 +100,8 @@ public: //interface for outside world
     virtual vector<uint8_t> getImageForCamera(int camera_id, ImageType type);
 
 
-    DroneControlBase() = default;
-    virtual ~DroneControlBase() = default;
+    DroneControllerBase() = default;
+    virtual ~DroneControllerBase() = default;
 
 protected: //types
     typedef std::function<bool()> WaitFunction;
@@ -217,12 +201,12 @@ private:    //types
         }
     };
 
-    //instances of this class is always local variable in DroneControlBase methods
+    //instances of this class is always local variable in DroneControllerBase methods
     class VirtualRCEnable {
     private:
-        DroneControlBase* drone_base_ptr_;
+        DroneControllerBase* drone_base_ptr_;
     public:
-        VirtualRCEnable(DroneControlBase* drone_base_ptr)
+        VirtualRCEnable(DroneControllerBase* drone_base_ptr)
         {
             drone_base_ptr_ = drone_base_ptr;
             drone_base_ptr_->commandEnableVirtualRC(true);
@@ -269,8 +253,8 @@ private:// vars
     float obs_avoidance_vel_ = 0.5f;
     bool log_to_file = false;
 
-    // we make this recursive so that DroneControlBase subclass can grab StatusLock then call a 
-    // base class method on DroneControlBase that also grabs the StatusLock.
+    // we make this recursive so that DroneControllerBase subclass can grab StatusLock then call a 
+    // base class method on DroneControllerBase that also grabs the StatusLock.
     std::recursive_mutex status_mutex_;
 };
 

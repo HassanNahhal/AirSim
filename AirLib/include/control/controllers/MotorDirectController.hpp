@@ -5,7 +5,7 @@
 #define msr_air_copter_sim_MotorDirectController_hpp
 
 #include <exception>
-#include "ControllerBase.hpp"
+#include "control/ControllerBase.hpp"
 #include "common/common_utils/Utils.hpp"
 #include "MotorDirectControllerParams.hpp"
 
@@ -47,6 +47,10 @@ public:
     virtual real_T getVertexControlSignal(unsigned int rotor_index) override
     {
         return motor_control_signals_.at(rotor_index);
+    }
+    virtual size_t getVertexCount() override
+    {
+        return 4;
     }
     //*** End ControllerBase implementation ****//
 

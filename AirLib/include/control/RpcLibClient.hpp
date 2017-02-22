@@ -9,7 +9,7 @@
 #include "common/CommonStructs.hpp"
 #include "DroneControlCommon.hpp"
 #include "SafetyEval.hpp"
-#include "DroneControlBase.hpp"
+#include "DroneControllerBase.hpp"
 
 namespace msr { namespace airlib {
 
@@ -51,10 +51,10 @@ public:
     void cancelAllTasks();
 
     //request image
-    bool setImageTypeForCamera(int camera_id, DroneControlBase::ImageType type);
-    DroneControlBase::ImageType getImageTypeForCamera(int camera_id);
+    bool setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type);
+    DroneControllerBase::ImageType getImageTypeForCamera(int camera_id);
     //get/set image
-    vector<uint8_t> getImageForCamera(int camera_id, DroneControlBase::ImageType type);
+    vector<uint8_t> getImageForCamera(int camera_id, DroneControllerBase::ImageType type);
 
     bool setSafety(SafetyEval::SafetyViolationType enable_reasons, float obs_clearance, SafetyEval::ObsAvoidanceStrategy obs_startegy,
         float obs_avoidance_vel, const Vector3r& origin, float xy_length, float max_z, float min_z);

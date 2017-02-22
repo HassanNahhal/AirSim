@@ -4,7 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include "control/RpcLibClient.hpp"
-#include "control/DroneControlBase.hpp"
+#include "control/DroneControllerBase.hpp"
 STRICT_MODE_OFF
 #ifndef RPCLIB_MSGPACK
 #define RPCLIB_MSGPACK clmdep_msgpack
@@ -20,26 +20,26 @@ int imageExample()
     
     msr::airlib::RpcLibClient client;
 
-    client.setImageTypeForCamera(4, DroneControlBase::ImageType::Depth);
+    client.setImageTypeForCamera(4, DroneControllerBase::ImageType::Depth);
 
     //cout << (int) client.getImageTypeForCamera(4) <<endl;
     //cout << (int) client.getImageTypeForCamera(3) <<endl;
-    //client.setImageTypeForCamera(3, DroneControlBase::ImageType::Segmentation);
+    //client.setImageTypeForCamera(3, DroneControllerBase::ImageType::Segmentation);
     //cout << (int) client.getImageTypeForCamera(3) <<endl;
 
-    auto i1 = client.getImageForCamera(0, DroneControlBase::ImageType::Depth);
+    auto i1 = client.getImageForCamera(0, DroneControllerBase::ImageType::Depth);
     cout << i1.size() << endl;
 
-    auto i2 = client.getImageForCamera(3, DroneControlBase::ImageType::Depth);
+    auto i2 = client.getImageForCamera(3, DroneControllerBase::ImageType::Depth);
     cout << i2.size() << " " << (i2.size() > 0 ? i2[0] : -1) << endl;
 
-    auto i3 = client.getImageForCamera(4, DroneControlBase::ImageType::Scene);
+    auto i3 = client.getImageForCamera(4, DroneControllerBase::ImageType::Scene);
     cout << i3.size() << " " << (i3.size() > 0 ? i3[0] : -1) << endl;
 
     /* cout << "Press Enter to enable retrival of depth images" << endl; cin.get();
-    client.setImageTypeForCamera(0, DroneControlBase::ImageType::Segmentation);
+    client.setImageTypeForCamera(0, DroneControllerBase::ImageType::Segmentation);
     cout << "Press Enter to get depth image" << endl; cin.get();
-    auto image = client.getImageForCamera(0, DroneControlBase::ImageType::Segmentation);
+    auto image = client.getImageForCamera(0, DroneControllerBase::ImageType::Segmentation);
     cout << "PNG images received bytes: " << image.size() << endl;
     cout << "Press Enter to save image" << endl; cin.get();
     ofstream file("c:\\temp\\depth.png", ios::binary);

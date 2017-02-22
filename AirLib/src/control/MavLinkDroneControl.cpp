@@ -291,7 +291,7 @@ const VehicleParams& MavLinkDroneControl::getVehicleParams()
 {
     return MavLinkDroneControl::getInternalVehicleParams(); //defaults are good for PX4 generic quadrocopter.
 }
-//TODO: decouple DroneControlBase, VehicalParams and SafetyEval
+//TODO: decouple DroneControllerBase, VehicalParams and SafetyEval
 const VehicleParams& MavLinkDroneControl::getInternalVehicleParams()
 {
     static const VehicleParams vehicle_params_;

@@ -7,7 +7,7 @@
 #include "common/Common.hpp"
 #include "common/CommonStructs.hpp"
 #include "DroneControlCommon.hpp"
-#include "DroneControlBase.hpp"
+#include "DroneControllerBase.hpp"
 #include "SafetyEval.hpp"
 #include "rpc/msgpack.hpp"
 
@@ -153,7 +153,7 @@ public:
 MSGPACK_ADD_ENUM(msr::airlib::DrivetrainType);
 MSGPACK_ADD_ENUM(msr::airlib::SafetyEval::SafetyViolationType_);
 MSGPACK_ADD_ENUM(msr::airlib::SafetyEval::ObsAvoidanceStrategy);
-MSGPACK_ADD_ENUM(msr::airlib::DroneControlBase::ImageType);
+MSGPACK_ADD_ENUM(msr::airlib::DroneControllerBase::ImageType);
 
 
 #endif

@@ -5,7 +5,6 @@
 #define msr_air_copter_sim_ControllerBase_hpp
 
 #include "common/UpdatableObject.hpp"
-#include "control/DroneControlBase.hpp"
 
 namespace msr { namespace airlib {
 
@@ -25,17 +24,12 @@ public:
 
     //return 0 to 1 (corresponds to zero to full thrust)
 	virtual real_T getVertexControlSignal(unsigned int rotor_index) = 0;
+    virtual size_t getVertexCount() = 0;
     
     virtual void getStatusMessages(std::vector<std::string>& messages)
     {
         //default implementation
     }
-
-    virtual DroneControlBase* createOrGetDroneControl()
-    {
-        //default implementation
-        return nullptr;
-    };
 
     virtual void start()
     {

@@ -76,9 +76,9 @@ RpcLibServer::RpcLibServer(DroneControlServer* drone, string server_address, uin
         float obs_avoidance_vel, const RpcLibAdapators::Vector3r& origin, float xy_length, float max_z, float min_z) -> 
         bool { return drone_->setSafety(SafetyEval::SafetyViolationType(enable_reasons), obs_clearance, obs_startegy,
             obs_avoidance_vel, origin.to(), xy_length, max_z, min_z); });
-    pimpl_->server.bind("setImageTypeForCamera", [&](int camera_id, DroneControlBase::ImageType type) -> bool { return drone_->setImageTypeForCamera(camera_id, type); });
-    pimpl_->server.bind("getImageTypeForCamera", [&](int camera_id) -> DroneControlBase::ImageType { return drone_->getImageTypeForCamera(camera_id); });
-    pimpl_->server.bind("getImageForCamera", [&](int camera_id, DroneControlBase::ImageType type) -> vector<uint8_t> { return drone_->getImageForCamera(camera_id, type); });
+    pimpl_->server.bind("setImageTypeForCamera", [&](int camera_id, DroneControllerBase::ImageType type) -> bool { return drone_->setImageTypeForCamera(camera_id, type); });
+    pimpl_->server.bind("getImageTypeForCamera", [&](int camera_id) -> DroneControllerBase::ImageType { return drone_->getImageTypeForCamera(camera_id); });
+    pimpl_->server.bind("getImageForCamera", [&](int camera_id, DroneControllerBase::ImageType type) -> vector<uint8_t> { return drone_->getImageForCamera(camera_id, type); });
 
 
     //getters
