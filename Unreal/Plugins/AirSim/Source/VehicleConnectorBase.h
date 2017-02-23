@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/UpdatableObject.hpp"
-#include "control/DroneControlBase.hpp"
 
 class VehicleConnectorBase : public msr::airlib::UpdatableObject
 {
@@ -19,6 +18,8 @@ public:
     //called when render changes are required
     virtual void updateRendering() = 0;
 
-    virtual msr::airlib::DroneControlBase* createOrGetDroneControl() = 0;
-
+    //opens up channel to talk to vehicle via APIs
+    virtual void startApiServer() = 0;
+    virtual void stopApiServer() = 0;
+    virtual bool isApiServerStarted() = 0;
 };

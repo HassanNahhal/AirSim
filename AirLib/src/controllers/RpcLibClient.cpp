@@ -19,9 +19,9 @@ STRICT_MODE_OFF
 #endif // !RPCLIB_MSGPACK
 
 #include "rpc/client.h"
-#include "control/RpcLibAdapators.hpp"
+#include "controllers/RpcLibAdapators.hpp"
 STRICT_MODE_ON
-#include "control/RpcLibClient.hpp"
+#include "controllers/RpcLibClient.hpp"
 #ifdef _MSC_VER
 __pragma(warning( disable : 4239))
 #endif			  
@@ -196,9 +196,9 @@ std::string RpcLibClient::getDebugInfo()
     return pimpl_->client.call("getDebugInfo").as<std::string>();
 }
 
-bool RpcLibClient::setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type)
+void RpcLibClient::setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type)
 {
-    return pimpl_->client.call("setImageTypeForCamera", camera_id, type).as<bool>();
+    pimpl_->client.call("setImageTypeForCamera", camera_id, type);
 }
 
 DroneControllerBase::ImageType RpcLibClient::getImageTypeForCamera(int camera_id)

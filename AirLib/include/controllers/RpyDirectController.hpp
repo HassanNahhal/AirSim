@@ -5,7 +5,7 @@
 #define msr_air_copter_sim_RpyDirectController_hpp
 
 #include <exception>
-#include "control/ControllerBase.hpp"
+#include "controllers/ControllerBase.hpp"
 #include "RpyDirectControllerParams.hpp"
 #include "common/common_utils/Utils.hpp"
 

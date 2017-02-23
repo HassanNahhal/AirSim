@@ -1,8 +1,7 @@
 #pragma once
 
 #include "common/Common.hpp"
-#include "control/RpcLibServer.hpp"
-#include "MavMultiRotor.h"
+#include "MavMultiRotorConnector.h"
 #include "SimModeWorldBase.h"
 #include "SimModeWorldMultiRotor.generated.h"
 
@@ -23,9 +22,7 @@ protected:
     VehiclePtr createVehicle(AFlyingPawn* pawn);
 
 private:
-    std::shared_ptr<VehicleConnectorBase> fpv_vehicle_;
-    std::unique_ptr<msr::airlib::DroneControlServer> drone_control_server_;
-    std::unique_ptr<msr::airlib::RpcLibServer> rpclib_server_;
+    std::shared_ptr<VehicleConnectorBase> fpv_vehicle_connector_;
     TArray<uint8> image_;
 
 };

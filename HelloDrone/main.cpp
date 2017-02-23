@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <chrono>
-#include "control/RpcLibClient.hpp"
-#include "control/DroneControllerBase.hpp"
+#include "controllers/RpcLibClient.hpp"
+#include "controllers/DroneControllerBase.hpp"
 STRICT_MODE_OFF
 #ifndef RPCLIB_MSGPACK
 #define RPCLIB_MSGPACK clmdep_msgpack
@@ -36,7 +36,8 @@ int imageExample()
     auto i3 = client.getImageForCamera(4, DroneControllerBase::ImageType::Scene);
     cout << i3.size() << " " << (i3.size() > 0 ? i3[0] : -1) << endl;
 
-    /* cout << "Press Enter to enable retrival of depth images" << endl; cin.get();
+    /* 
+    cout << "Press Enter to enable retrival of depth images" << endl; cin.get();
     client.setImageTypeForCamera(0, DroneControllerBase::ImageType::Segmentation);
     cout << "Press Enter to get depth image" << endl; cin.get();
     auto image = client.getImageForCamera(0, DroneControllerBase::ImageType::Segmentation);
@@ -44,7 +45,8 @@ int imageExample()
     cout << "Press Enter to save image" << endl; cin.get();
     ofstream file("c:\\temp\\depth.png", ios::binary);
     file.write((char*) image.data(), image.size());
-    file.close();*/
+    file.close();
+    */
 
     return 0;
 }

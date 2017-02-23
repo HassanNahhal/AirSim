@@ -1,39 +1,29 @@
 #pragma once
 
-#include "control/MavLinkController.h"
-#include "vehicles/controllers/MotorDirectController.hpp"
+#include "controllers/MavLinkDroneController.hpp"
+#include "DroneControlServer.hpp"
+#include "control/RpcLibServer.hpp"
 #include "vehicles/configs/Px4QuadX.hpp"
 #include "vehicles/MultiRotor.hpp"
 #include "physics//Kinematics.hpp"
 #include "common/Common.hpp"
 #include "common/CommonStructs.hpp"
-#include "control/DroneControlBase.hpp"
 #include "VehicleConnectorBase.h"
 #include "FlyingPawn.h"
 
 
-class MavMultiRotor : public VehicleConnectorBase
+class MavMultiRotorConnector : public VehicleConnectorBase
 {
 public:
-    typedef msr::airlib::GeoPoint GeoPoint;
-    typedef msr::airlib::Vector3r Vector3r;
-    typedef msr::airlib::Pose Pose;
-    typedef msr::airlib::Quaternionr Quaternionr;
-    typedef msr::airlib::CollisionInfo CollisionInfo;
-    typedef msr::airlib::VectorMath VectorMath;
-    typedef msr::airlib::Vector3r Vector3r;
     typedef msr::airlib::real_T real_T;
     typedef msr::airlib::Utils Utils;
     typedef msr::airlib::ControllerBase ControllerBase;
-    typedef msr::airlib::Px4QuadX Px4QuadX;
-    typedef msr::airlib::Kinematics Kinematics;
     typedef msr::airlib::MultiRotor MultiRotor;
-    typedef msr::airlib::Twist Twist;
     typedef msr::airlib::StateReporter StateReporter;
     typedef msr::airlib::UpdatableObject UpdatableObject;
         
 public:
-    virtual ~MavMultiRotor() = default;
+    virtual ~MavMultiRotorConnector() = default;
 
     //VehicleConnectorBase interface
     //implements game interface to update pawn
@@ -42,6 +32,9 @@ public:
     virtual void endPlay() override;
     virtual void updateRenderedState() override;
     virtual void updateRendering() override;
+    virtual void startApiServer() override;
+    virtual void stopApiServer() override;
+    virtual bool isApiServerStarted() override();
 
     //PhysicsBody interface
     //this just wrapped around MultiRotor physics body
@@ -50,19 +43,19 @@ public:
     virtual void reportState(StateReporter& reporter) override;
     virtual UpdatableObject* getPhysicsBody() override;
 
-    //provides way to control the drone
-    virtual msr::airlib::DroneControlBase* createOrGetDroneControl() override;
-
 private:
-    msr::airlib::MavLinkController::HILConnectionInfo getConnectionInfo();
+    msr::airlib::MavLinkDroneController::ConnectionInfo getConnectionInfo();
     void createController(MultiRotor& vehicle);
 
 private:
     MultiRotor vehicle_;
-    std::unique_ptr<ControllerBase> controller_;
+    std::unique_ptr<msr::airlib::DroneControllerBase> controller_;
     std::vector<std::string> controller_messages_;
     msr::airlib::Environment environment_;
     AFlyingPawn* vehicle_pawn_;
+
+    std::unique_ptr<msr::airlib::DroneControlServer> drone_control_server_;
+    std::unique_ptr<msr::airlib::RpcLibServer> rpclib_server_;
 
     real_T rotor_speeds_[4];
     int rotor_directions_[4];

@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <string>
-#include "control/RpcLibServer.hpp"
-#include "control/controllers/MavLinkDroneController.hpp"
+#include "controllers/RpcLibServer.hpp"
+#include "controllers/MavLinkDroneController.hpp"
 
 using namespace std;
 using namespace msr::airlib;
@@ -53,7 +53,7 @@ int main(int argc, const char* argv[])
 
     MavLinkDroneController mav_drone;
     mav_drone.initialize(connection_info, nullptr, true);   //TODO: need to review how is_simulation flag might affect here
-    DroneControlServer server_wrapper(&mav_drone);
+    DroneControllerCancelable server_wrapper(&mav_drone);
     msr::airlib::RpcLibServer server(&server_wrapper, server_address);
     
     auto v = std::vector<msr::airlib::uint8_t>{ 5, 4, 3 };

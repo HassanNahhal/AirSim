@@ -7,7 +7,7 @@
 #include "common/Common.hpp"
 #include "common/CommonStructs.hpp"
 #include "Rotor.hpp"
-#include "control/ControllerBase.hpp"
+#include "controllers/ControllerBase.hpp"
 #include "MultiRotorParams.hpp"
 #include <vector>
 #include "physics/PhysicsBody.hpp"

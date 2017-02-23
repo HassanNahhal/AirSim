@@ -8,7 +8,7 @@
 #include "common/Common.hpp"
 #include "common/VectorMath.hpp"
 #include "vehicles/MultiRotor.hpp"
-#include "control/DroneControllerBase.hpp"
+#include "controllers/DroneControllerBase.hpp"
 #include <queue>
 #include <mutex>
 #include <string>
@@ -99,11 +99,11 @@ public:
     RCData getRCData() override;
     double timestampNow() override;
 
-    bool armDisarm(bool arm, CancelableActionBase& cancelable_action) override;
-    bool takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action) override;
-    bool land(CancelableActionBase& cancelable_action) override;
-    bool goHome(CancelableActionBase& cancelable_action) override; 
-    bool hover(CancelableActionBase& cancelable_action) override;
+    bool armDisarm(bool arm, CancelableBase& cancelable_action) override;
+    bool takeoff(float max_wait_seconds, CancelableBase& cancelable_action) override;
+    bool land(CancelableBase& cancelable_action) override;
+    bool goHome(CancelableBase& cancelable_action) override; 
+    bool hover(CancelableBase& cancelable_action) override;
     GeoPoint getHomePoint() override;
     GeoPoint getGpsLocation() override;
 

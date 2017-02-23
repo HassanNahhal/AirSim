@@ -10,11 +10,11 @@
 #include "common/Common.hpp"
 #include "common/common_utils/Utils.hpp"
 #include "common/common_utils/AsyncTasker.hpp"
-#include "control/RpcLibClient.hpp"
+#include "controllers/RpcLibClient.hpp"
 #include "SimpleShell.hpp"
 #include "common/EarthUtils.hpp"
-#include "control/DroneControlCommon.hpp"
-#include "control/SafetyEval.hpp"
+#include "controllers/DroneCommon.hpp"
+#include "safety/SafetyEval.hpp"
 
 
 namespace msr { namespace airlib {

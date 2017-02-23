@@ -7,9 +7,9 @@
 #include "common/Common.hpp"
 #include <functional>
 #include "common/CommonStructs.hpp"
-#include "DroneControlCommon.hpp"
-#include "SafetyEval.hpp"
+#include "DroneCommon.hpp"
 #include "DroneControllerBase.hpp"
+#include "safety/SafetyEval.hpp"
 
 namespace msr { namespace airlib {
 
@@ -54,7 +54,7 @@ public:
     std::string getDebugInfo();
 
     //request image
-    bool setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type);
+    void setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type);
     DroneControllerBase::ImageType getImageTypeForCamera(int camera_id);
     //get/set image
     vector<uint8_t> getImageForCamera(int camera_id, DroneControllerBase::ImageType type);

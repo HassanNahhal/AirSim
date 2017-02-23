@@ -4,7 +4,7 @@
 #ifndef msr_air_copter_sim_VehicleControllerBase_hpp
 #define msr_air_copter_sim_VehicleControllerBase_hpp
 
-#include "control/ControllerBase.hpp"
+#include "controllers/ControllerBase.hpp"
 #include <exception>
 #include <string>
 

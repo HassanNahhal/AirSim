@@ -1,16 +1,16 @@
 #include "AirSim.h"
-#include "MavMultiRotor.h"
+#include "MavMultiRotorConnector.h"
 #include "AirBlueprintLib.h"
 #include "control/Settings.h"
 
 using namespace msr::airlib;
 
-void MavMultiRotor::initialize(AFlyingPawn* vehicle_pawn)
+void MavMultiRotorConnector::initialize(AFlyingPawn* vehicle_pawn)
 {
 	vehicle_pawn_ = vehicle_pawn;
 	vehicle_pawn_->initialize();
 
-	//init vehicle
+	//init physics vehicle
 	auto initial_kinematics = Kinematics::State::zero();
 	initial_kinematics.pose = vehicle_pawn_->getPose();
 	msr::airlib::Environment::State initial_environment;
@@ -23,14 +23,14 @@ void MavMultiRotor::initialize(AFlyingPawn* vehicle_pawn)
 		&environment_, controller_.get());
 }
 
-void MavMultiRotor::createController(MultiRotor& vehicle)
+void MavMultiRotorConnector::createController(MultiRotor& vehicle)
 {
-    controller_.reset(new MavLinkController());
-    auto mav_controller = static_cast<MavLinkController*>(controller_.get());
-    mav_controller->initialize(getConnectionInfo(), &vehicle);
+    controller_.reset(new msr::airlib::MavLinkDroneController());
+    auto mav_controller = static_cast<MavLinkDroneController*>(controller_.get());
+    mav_controller->initialize(getConnectionInfo(), &vehicle, true);
 }
 
-void MavMultiRotor::beginPlay()
+void MavMultiRotorConnector::beginPlay()
 {
     //connect to HIL
     try {
@@ -44,14 +44,14 @@ void MavMultiRotor::beginPlay()
     }
 }
 
-void MavMultiRotor::endPlay()
+void MavMultiRotorConnector::endPlay()
 {
     controller_->stop();
 }
 
-msr::airlib::MavLinkController::HILConnectionInfo MavMultiRotor::getConnectionInfo()
+msr::airlib::MavLinkDroneController::ConnectionInfo MavMultiRotorConnector::getConnectionInfo()
 {
-	auto connection_info = vehicle_pawn_->getHILConnectionInfo();
+	auto connection_info = vehicle_pawn_->getMavConnectionInfo();
 
 	Settings& settings = Settings::singleton();
 
@@ -80,7 +80,7 @@ msr::airlib::MavLinkController::HILConnectionInfo MavMultiRotor::getConnectionIn
 	return connection_info;
 }
 
-void MavMultiRotor::updateRenderedState()
+void MavMultiRotorConnector::updateRenderedState()
 {
 	//move collison info from rendering engine to vehicle
 	vehicle_.setCollisionInfo(vehicle_pawn_->getCollisonInfo());
@@ -98,11 +98,10 @@ void MavMultiRotor::updateRenderedState()
 		rotor_controls_filtered_[i] = rotor_output.control_signal_filtered;
 	}
 
-	//retrieve MavLink status messages
     controller_->getStatusMessages(controller_messages_);
 }
 
-void MavMultiRotor::updateRendering()
+void MavMultiRotorConnector::updateRendering()
 {
 	//update rotor animations
 	for (unsigned int i = 0; i < vehicle_.vertexCount(); ++i) {
@@ -114,32 +113,47 @@ void MavMultiRotor::updateRendering()
 	}
 }
 
+void MavMultiRotorConnector::startApiServer()
+{
+    drone_control_server_.reset(new msr::airlib::DroneControlServer(controller_.get()));
+    std::string server_address = Settings::singleton().getString("LocalHostIp", "127.0.0.1");
+    rpclib_server_.reset(new msr::airlib::RpcLibServer(drone_control_server_.get(), server_address));
+    rpclib_server_->start();
+
+}
+void MavMultiRotorConnector::stopApiServer()
+{
+    rpclib_server_->stop();
+    rpclib_server_.release();
+    drone_control_server_.release();
+}
+
+bool MavMultiRotorConnector::isApiServerStarted()
+{
+    return rpclib_server_ != nullptr;
+}
 
 //*** Start: UpdatableState implementation ***//
-void MavMultiRotor::reset()
+void MavMultiRotorConnector::reset()
 {
 	vehicle_pawn_->reset();    //we do flier resetPose so that flier is placed back without collisons
 	vehicle_.reset();
 }
 
-void MavMultiRotor::update(real_T dt)
+void MavMultiRotorConnector::update(real_T dt)
 {
 	//this is high frequency physics tick, flier gets ticked at rendering frame rate
 	vehicle_.update(dt);
 }
 
-void MavMultiRotor::reportState(StateReporter& reporter)
+void MavMultiRotorConnector::reportState(StateReporter& reporter)
 {
 	vehicle_.reportState(reporter);
 }
 
-MavMultiRotor::UpdatableObject* MavMultiRotor::getPhysicsBody()
+MavMultiRotorConnector::UpdatableObject* MavMultiRotorConnector::getPhysicsBody()
 {
 	return vehicle_.getPhysicsBody();
 }
 //*** End: UpdatableState implementation ***//
 
-msr::airlib::DroneControlBase* MavMultiRotor::createOrGetDroneControl()
-{
-	return controller_->createOrGetDroneControl();
-}

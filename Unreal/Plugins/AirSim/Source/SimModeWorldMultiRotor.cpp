@@ -1,7 +1,7 @@
 #include "AirSim.h"
 #include "SimModeWorldMultiRotor.h"
 #include "AirBlueprintLib.h"
-#include "control/DroneControlBase.hpp"
+#include "control/DroneControllerBase.hpp"
 #include "physics/PhysicsBody.hpp"
 #include <memory>
 #include "control/Settings.h"
@@ -11,13 +11,10 @@ void ASimModeWorldMultiRotor::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (fpv_vehicle_ != nullptr) {
+    if (fpv_vehicle_connector_ != nullptr) {
         //create its control server
 		try {
-			drone_control_server_.reset(new msr::airlib::DroneControlServer(fpv_vehicle_->createOrGetDroneControl()));
-			std::string server_address = Settings::singleton().getString("LocalHostIp", "127.0.0.1");
-			rpclib_server_.reset(new msr::airlib::RpcLibServer(drone_control_server_.get(), server_address));
-			rpclib_server_->start();
+            fpv_vehicle_connector_->startApiServer();
 		}
 		catch (std::exception& ex) {
             UAirBlueprintLib::LogMessage("Cannot start RpcLib Server",  ex.what(), LogDebugLevel::Failure);
@@ -27,21 +24,22 @@ void ASimModeWorldMultiRotor::BeginPlay()
 
 void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
 {
-    if (fpv_vehicle_ != nullptr && drone_control_server_ != nullptr && getVehicleCount() > 0) {
+    if (fpv_vehicle_connector_ != nullptr && fpv_vehicle_connector_->isApiServerStarted() && getVehicleCount() > 0) {
+
         using namespace msr::airlib;
         auto camera_type = drone_control_server_->getImageTypeForCamera(0);
-        if (camera_type != DroneControlBase::ImageType::None) { 
+        if (camera_type != DroneControllerBase::ImageType::None) { 
             if (CameraDirector != nullptr) {
                 APIPCamera* camera = CameraDirector->getCamera(0);
                 EPIPCameraType pip_type;
                 if (camera != nullptr) {
                     //TODO: merge these two different types?
                     switch (camera_type) {
-                    case DroneControlBase::ImageType::Scene:
+                    case DroneControllerBase::ImageType::Scene:
                         pip_type = EPIPCameraType::PIP_CAMERA_TYPE_SCENE; break;
-                    case DroneControlBase::ImageType::Depth:
+                    case DroneControllerBase::ImageType::Depth:
                         pip_type = EPIPCameraType::PIP_CAMERA_TYPE_DEPTH; break;
-                    case DroneControlBase::ImageType::Segmentation:
+                    case DroneControllerBase::ImageType::Segmentation:
                         pip_type = EPIPCameraType::PIP_CAMERA_TYPE_SEG; break;
                     default:
                         pip_type = EPIPCameraType::PIP_CAMERA_TYPE_NONE;
@@ -55,7 +53,7 @@ void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
         }
 
         if (isRecording() && record_file.is_open()) {
-            auto physics_body = static_cast<msr::airlib::PhysicsBody*>(fpv_vehicle_->getPhysicsBody());
+            auto physics_body = static_cast<msr::airlib::PhysicsBody*>(fpv_vehicle_connector_->getPhysicsBody());
             auto kinematics = physics_body->getKinematics();
 
             record_file << msr::airlib::Utils::getTimeSinceEpochMillis() << "\t";    //TODO: maintain simulation timer instead
@@ -76,10 +74,8 @@ void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
 
 void ASimModeWorldMultiRotor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (fpv_vehicle_ != nullptr && drone_control_server_ != nullptr) {
-        rpclib_server_->stop();
-        rpclib_server_.release();
-        drone_control_server_.release();
+	if (fpv_vehicle_connector_ != nullptr) {
+        fpv_vehicle_connector_->stopApiServer();
     }
 
     Super::EndPlay(EndPlayReason);
@@ -110,7 +106,7 @@ void ASimModeWorldMultiRotor::createVehicles(std::vector<VehiclePtr>& vehicles)
             vehicles.push_back(vehicle);
 
             if (pawn == fpv_pawn) {
-                fpv_vehicle_ = vehicle;
+                fpv_vehicle_connector_ = vehicle;
             }
         }
         //else we don't have vehicle for this pawn
@@ -119,7 +115,7 @@ void ASimModeWorldMultiRotor::createVehicles(std::vector<VehiclePtr>& vehicles)
 
 ASimModeWorldBase::VehiclePtr ASimModeWorldMultiRotor::createVehicle(AFlyingPawn* pawn)
 {
-    auto vehicle = std::make_shared<MavMultiRotor>();
+    auto vehicle = std::make_shared<MavMultiRotorConnector>();
     vehicle->initialize(pawn);
     return std::static_pointer_cast<VehicleConnectorBase>(vehicle);
 }

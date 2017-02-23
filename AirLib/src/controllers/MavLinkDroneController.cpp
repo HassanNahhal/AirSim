@@ -8,10 +8,10 @@
 #include "AirSim.h"
 #endif
 
-#include "control/controllers/MavLinkDroneController.hpp"
+#include "controllers/MavLinkDroneController.hpp"
 #include <memory>
 #include <exception>
-#include "control/PidController.hpp"
+#include "controllers/PidController.hpp"
 #include "MavLinkMessages.hpp"
 #include "MavLinkConnection.hpp"
 #include "MavLinkNode.hpp"
@@ -698,7 +698,7 @@ struct MavLinkDroneController::impl {
 
     //administrative
 
-    bool armDisarm(bool arm, CancelableActionBase& cancelable_action)
+    bool armDisarm(bool arm, CancelableBase& cancelable_action)
     {
         bool rc = false;
         mav_vehicle_->armDisarm(arm).wait(10000, &rc);
@@ -742,7 +742,7 @@ struct MavLinkDroneController::impl {
         is_simulation_mode_ = is_set;
     }
 
-    bool takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action)
+    bool takeoff(float max_wait_seconds, CancelableBase& cancelable_action)
     {
         bool rc = false;
         if (!mav_vehicle_->takeoff(getTakeoffZ(), 0.0f, 0.0f).wait(static_cast<int>(max_wait_seconds * 1000), &rc))
@@ -757,7 +757,7 @@ struct MavLinkDroneController::impl {
         return success;
     }
 
-    bool hover(CancelableActionBase& cancelable_action)
+    bool hover(CancelableBase& cancelable_action)
     {
         bool rc = false;
         AsyncResult<bool> result = mav_vehicle_->loiter();
@@ -772,7 +772,7 @@ struct MavLinkDroneController::impl {
         return rc;
     }
 
-    bool land(CancelableActionBase& cancelable_action)
+    bool land(CancelableBase& cancelable_action)
     {
         // bugbug: really need a downward pointing distance to ground sensor to do this properly, for now
         // we assume the ground is relatively flat an we are landing roughly at the home altitude.
@@ -804,7 +804,7 @@ struct MavLinkDroneController::impl {
         return true;
     }
 
-    bool goHome(CancelableActionBase& cancelable_action)
+    bool goHome(CancelableBase& cancelable_action)
     {
         bool rc = false;
         if (!mav_vehicle_->returnToHome().wait(10000, &rc)) {
@@ -1000,7 +1000,7 @@ double MavLinkDroneController::timestampNow()
 
 //administrative
 
-bool MavLinkDroneController::armDisarm(bool arm, CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::armDisarm(bool arm, CancelableBase& cancelable_action)
 {
     return pimpl_->armDisarm(arm, cancelable_action);
 }
@@ -1027,22 +1027,22 @@ bool MavLinkDroneController::isSimulationMode()
     return pimpl_->isSimulationMode();
 }
 
-bool MavLinkDroneController::takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::takeoff(float max_wait_seconds, CancelableBase& cancelable_action)
 {
     return pimpl_->takeoff(max_wait_seconds, cancelable_action);
 }
 
-bool MavLinkDroneController::hover(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::hover(CancelableBase& cancelable_action)
 {
     return pimpl_->hover(cancelable_action);
 }
 
-bool MavLinkDroneController::land(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::land(CancelableBase& cancelable_action)
 {
     return pimpl_->land(cancelable_action);
 }
 
-bool MavLinkDroneController::goHome(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::goHome(CancelableBase& cancelable_action)
 {
     return pimpl_->goHome(cancelable_action);
 }
