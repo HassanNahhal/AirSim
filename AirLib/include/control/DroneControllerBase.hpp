@@ -18,12 +18,12 @@ namespace msr { namespace airlib {
 //RETURN values: true if not prempted else false. For error conditions, raise exceptions.
 class DroneControllerBase : public VehicleControllerBase {
 public: //types
-    class UnsafeMoveException : public MoveException {
+    class UnsafeMoveException : public VehicleMoveException {
     public:
         const SafetyEval::EvalResult result;
 
         UnsafeMoveException(const SafetyEval::EvalResult result_val, const string message = "")
-            : MoveException(message), result(result_val)
+            : VehicleMoveException(message), result(result_val)
         {}
     };
 
@@ -38,8 +38,6 @@ public: //types
         std::lock_guard<std::recursive_mutex> lock_;
     };
 
-public: //interface for outside world
-    
     enum class ImageType : uint {
         None = 0,
         Scene = 1, 
@@ -49,15 +47,16 @@ public: //interface for outside world
     };
     typedef common_utils::EnumFlags<ImageType>  ImageTypeFlags;
 
-    //atomic actions
+public: //interface for outside world
+    /* return value bool indicates command was cancelled, not a failure */
+
+    //administrative commands
     virtual bool armDisarm(bool arm, CancelableActionBase& cancelable_action) = 0;
-    virtual bool requestControl(CancelableActionBase& cancelable_action) = 0;
-    virtual bool releaseControl(CancelableActionBase& cancelable_action) = 0;
     virtual bool takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action) = 0;
     virtual bool land(CancelableActionBase& cancelable_action) = 0;
     virtual bool goHome(CancelableActionBase& cancelable_action) = 0;
 
-
+    //movement commands
     virtual bool moveByAngle(float pitch, float roll, float z, float yaw, float duration
         , CancelableActionBase& cancelable_action);
     virtual bool moveByVelocity(float vx, float vy, float vz, float duration, DrivetrainType drivetrain, const YawMode& yaw_mode,
@@ -85,12 +84,13 @@ public: //interface for outside world
     virtual double timestampNow() = 0;
     virtual GeoPoint getHomePoint() = 0;
     virtual GeoPoint getGpsLocation() = 0;
-    virtual bool isOffboardMode() = 0;
 
+    //safety settings
     virtual void setSafetyEval(const shared_ptr<SafetyEval> safety_eval_ptr);
     virtual bool setSafety(SafetyEval::SafetyViolationType enable_reasons, float obs_clearance, SafetyEval::ObsAvoidanceStrategy obs_startegy,
         float obs_avoidance_vel, const Vector3r& origin, float xy_length, float max_z, float min_z);
     virtual const VehicleParams& getVehicleParams() = 0;
+
 
     //request image
     virtual bool setImageTypeForCamera(int camera_id, ImageType type);
@@ -102,9 +102,6 @@ public: //interface for outside world
 
     DroneControllerBase() = default;
     virtual ~DroneControllerBase() = default;
-
-protected: //types
-    typedef std::function<bool()> WaitFunction;
 
 protected: //must implement interface by derived class
     //low level commands
@@ -150,15 +147,8 @@ protected: //optional oveerides recommanded for any drones, default implementati
         float max_factor = 40, float min_factor = 30);
     virtual float getObsAvoidanceVelocity(float risk_dist, float max_obs_avoidance_vel);
 
-protected: //higher level functions with no need to override in general
-           //*********************************safe wrapper around low level commands***************************************************
-    virtual bool moveByVelocity(float vx, float vy, float vz, const YawMode& yaw_mode);
-    virtual bool moveByVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode);
-    virtual bool moveToPosition(const Vector3r& dest, const YawMode& yaw_mode);
-    virtual bool moveByRollPitchZ(float pitch, float roll, float z, float yaw);
-    //****************************************************************************************************************************
-
 protected: //utility functions and data members for derived classes
+    typedef std::function<bool()> WaitFunction;
 
     // helper function can wait for anything (as defined by the given function) up to the max_wait duration (in seconds).
     // returns true if the wait function succeeded, or false if timeout occurred or the timeout is invalid.
@@ -167,11 +157,20 @@ protected: //utility functions and data members for derived classes
     //useful for derived class to check after takeoff
     virtual bool waitForZ(float max_wait_seconds, float z, float margin, CancelableActionBase& cancelable_action);
 
+    //*********************************safe wrapper around low level commands***************************************************
+    virtual bool moveByVelocity(float vx, float vy, float vz, const YawMode& yaw_mode);
+    virtual bool moveByVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode);
+    virtual bool moveToPosition(const Vector3r& dest, const YawMode& yaw_mode);
+    virtual bool moveByRollPitchZ(float pitch, float roll, float z, float yaw);
+    //****************************************************************************************************************************
+
     /************* safety checks & emergency manuevers ************/
     virtual bool emergencyManeuverIfUnsafe(const SafetyEval::EvalResult& result);
     virtual bool safetyCheckVelocity(const Vector3r& velocity);
     virtual bool safetyCheckVelocityZ(float vx, float vy, float z);
     virtual bool safetyCheckDestination(const Vector3r& dest_loc);
+    /************* safety checks & emergency manuevers ************/
+
     void logHomePoint();
 
 private:    //types

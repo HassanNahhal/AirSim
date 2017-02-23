@@ -5,6 +5,8 @@
 #define msr_air_copter_sim_VehicleControllerBase_hpp
 
 #include "control/ControllerBase.hpp"
+#include <exception>
+#include <string>
 
 namespace msr { namespace airlib {
 
@@ -13,16 +15,30 @@ namespace msr { namespace airlib {
 */
 class VehicleControllerBase : public ControllerBase {
 public:
-    //tells the controller to accept simulated sensor inputs
-    virtual void setSimulationMode(bool is_set) = 0;
-    
     //tells the controller to switch from human operated mode to computer operated mode
     virtual void setOffboardMode(bool is_set) = 0;
-
+    virtual void setSimulationMode(bool is_set) = 0;
+    virtual bool isOffboardMode() = 0;
+    virtual bool isSimulationMode() = 0;
+    
     //Supplies the controller 16 channels of input
-    virtual void setManualUserInputs(float inputs[], size_t count)
+    virtual void setUserInputs(const vector<float>& inputs)
     {
         //default implementation
+    }
+};
+
+class VehicleControllerException : public ControllerException {
+public:
+    VehicleControllerException(const std::string& message)
+        : ControllerException(message) { 
+    }
+};  
+
+class VehicleMoveException : public VehicleControllerException {
+public:
+    VehicleMoveException(const std::string& message)
+        : VehicleControllerException(message) { 
     }
 };
 

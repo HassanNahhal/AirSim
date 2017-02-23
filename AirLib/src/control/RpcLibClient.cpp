@@ -52,13 +52,17 @@ bool RpcLibClient::armDisarm(bool arm)
 {
     return pimpl_->client.call("armDisarm", arm).as<bool>();
 }
-bool RpcLibClient::requestControl()
+void RpcLibClient::setOffboardMode(bool is_set)
 {
-    return pimpl_->client.call("requestControl").as<bool>();
+    pimpl_->client.call("setOffboardMode", is_set);
 }
-bool RpcLibClient::releaseControl()
+void RpcLibClient::setSimulationMode(bool is_set)
 {
-    return pimpl_->client.call("releaseControl").as<bool>();
+    pimpl_->client.call("setSimulationMode", is_set);
+}
+void RpcLibClient::setUserInputs(const vector<float>& inputs)
+{
+    pimpl_->client.call("setUserInputs", inputs);
 }
 bool RpcLibClient::takeoff(float max_wait_seconds)
 {
@@ -71,6 +75,14 @@ bool RpcLibClient::land()
 bool RpcLibClient::goHome()
 {
     return pimpl_->client.call("goHome").as<bool>();
+}
+void RpcLibClient::start()
+{
+    pimpl_->client.call("start");
+}
+void RpcLibClient::stop()
+{
+    pimpl_->client.call("stop");
 }
 
 
@@ -172,6 +184,11 @@ GeoPoint RpcLibClient::getGpsLocation()
 bool RpcLibClient::isOffboardMode()
 {
     return pimpl_->client.call("isOffboardMode").as<bool>();
+}
+
+bool RpcLibClient::isSimulationMode()
+{
+    return pimpl_->client.call("isSimulationMode").as<bool>();
 }
 
 std::string RpcLibClient::getDebugInfo()

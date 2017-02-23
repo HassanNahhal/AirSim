@@ -105,9 +105,6 @@
     <ClInclude Include="include\control\IGeoFence.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\control\MavLinkDroneControl.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\control\ObstacleMap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -243,20 +240,17 @@
     <ClInclude Include="include\control\controllers\RpyDirectControllerParams.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\control\controllers\MavLinkController.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\control\VehicleControllerBase.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\control\DroneControllerBase.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\control\controllers\MavLinkDroneController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\control\MavLinkDroneControl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\control\ObstacleMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -272,10 +266,10 @@
     <ClCompile Include="src\control\Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\control\controllers\MavLinkController.cpp">
+    <ClCompile Include="src\control\DroneControllerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\control\DroneControllerBase.cpp">
+    <ClCompile Include="src\control\controllers\MavLinkDroneController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

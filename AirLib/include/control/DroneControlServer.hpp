@@ -27,15 +27,30 @@ public:
         CallLock lock(action_mutex_, &is_cancelled_);
         return drone_->armDisarm(arm, *this);
     }
-    bool requestControl()
+    void setOffboardMode(bool is_set)
     {
         CallLock lock(action_mutex_, &is_cancelled_);
-        return drone_->requestControl(*this);
+        drone_->setOffboardMode(is_set);
     }
-    bool releaseControl()
+    void setSimulationMode(bool is_set)
     {
         CallLock lock(action_mutex_, &is_cancelled_);
-        return drone_->releaseControl(*this);
+        drone_->setSimulationMode(is_set);
+    }
+    void setUserInputs(const vector<float>& inputs)
+    {
+        CallLock lock(action_mutex_, &is_cancelled_);
+        drone_->setUserInputs(inputs);
+    }
+    void start()
+    {
+        CallLock lock(action_mutex_, &is_cancelled_);
+        drone_->start();
+    }
+    void stop()
+    {
+        CallLock lock(action_mutex_, &is_cancelled_);
+        drone_->stop();
     }
     bool takeoff(float max_wait_seconds)
     {
@@ -167,6 +182,12 @@ public:
     {
         DroneControllerBase::StatusLock lock(drone_);
         return drone_->getGpsLocation();
+    }
+
+    bool isSimulationMode()
+    {
+        DroneControllerBase::StatusLock lock(drone_);
+        return drone_->isSimulationMode();
     }
 
     bool isOffboardMode()

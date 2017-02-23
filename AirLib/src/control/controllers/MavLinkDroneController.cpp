@@ -8,7 +8,7 @@
 #include "AirSim.h"
 #endif
 
-#include "control/controllers/MavLinkController.hpp"
+#include "control/controllers/MavLinkDroneController.hpp"
 #include <memory>
 #include <exception>
 #include "control/PidController.hpp"
@@ -31,7 +31,7 @@ static const int pixhawkFMUV2OldBootloaderProductId = 22;     ///< Product ID fo
 static const int pixhawkFMUV1ProductId = 16;     ///< Product ID for PX4 FMU V1 board
 static const int RotorControlsCount = 8;
 
-struct MavLinkController::impl {
+struct MavLinkDroneController::impl {
     std::shared_ptr<mavlinkcom::MavLinkNode> logviewer_proxy_, qgc_proxy_;
 
     // if you want to select a specific local network adapter so you can reach certain remote machines (e.g. wifi versus ethernet) 
@@ -60,41 +60,48 @@ struct MavLinkController::impl {
     mavlinkcom::MavLinkHilGps last_gps_message_;
 
     std::mutex mocap_pose_mutex_, heartbeat_mutex_, set_mode_mutex_, status_text_mutex_, hil_controls_mutex_, last_message_mutex_;
-    MavLinkController* parent_;
+    MavLinkDroneController* parent_;
 
-    impl(MavLinkController* parent)
+    impl(MavLinkDroneController* parent)
         : parent_(parent)
     {
     }
 
     //variables required for VehicleControllerBase implementation
-    MavConnectionInfo connection_info_;
+    ConnectionInfo connection_info_;
     bool is_any_heartbeat_, is_hil_mode_set_, is_armed_;
     bool is_controls_0_1_; //Are motor controls specified in 0..1 or -1..1?
     float rotor_controls_[RotorControlsCount];
     std::queue<std::string> status_messages_;
     int hil_state_freq_;
     bool actuators_message_supported_;
-    const MultiRotor* vehicle_;
+    const MultiRotor* phys_vehicle_;    //this is optional
     long last_gps_time_;
     bool was_reseted_;
 
     //additional variables required for DroneControllerBase implementation
+    //this is optional for methods that might not use vehicle commands
     std::unique_ptr<mavlinkcom::MavLinkVehicle> mav_vehicle_;
     int state_version_;
     mavlinkcom::VehicleState current_state;
     float target_height_;
     bool is_offboard_mode_;
+    bool is_simulation_mode_;
     PidController thrust_controller_;
 
-    void initialize(const MavConnectionInfo& connection_info, const MultiRotor* vehicle)
+    void initialize(const ConnectionInfo& connection_info, const MultiRotor* vehicle, bool is_simulation)
     {
         connection_info_ = connection_info;
-        vehicle_ = vehicle;
-        mav_vehicle_.reset(new mavlinkcom::MavLinkVehicle(connection_info_.vehicle_sysid, connection_info_.vehicle_compid));
+        phys_vehicle_ = vehicle;
+        is_simulation_mode_ = is_simulation;
+
+        if (phys_vehicle_ != nullptr)
+            mav_vehicle_.reset(new mavlinkcom::MavLinkVehicle(connection_info_.vehicle_sysid, connection_info_.vehicle_compid));
+        else
+            mav_vehicle_.release();
     }
 
-    MavConnectionInfo getMavConnectionInfo()
+    ConnectionInfo getMavConnectionInfo()
     {
         return connection_info_;
     }
@@ -115,7 +122,7 @@ struct MavLinkController::impl {
         }
     }
 
-    void initializeHILSubscrptions()
+    void initializeMavSubscrptions()
     {
         if (connection_ != nullptr) {
             is_any_heartbeat_ = false;
@@ -175,22 +182,10 @@ struct MavLinkController::impl {
     }
 
 
-    DroneControllerBase* createOrGetDroneControl()
-    {
-        if (mav_vehicle_control_ == nullptr) {
-            if (connection_ == nullptr)
-                throw std::domain_error("MavLinkController requires connection object to be set before createOrGetDroneControl call");
-            mav_vehicle_control_ = std::static_pointer_cast<DroneControllerBase>(
-                std::make_shared<MavLinkController>(connection_info_.offboard_sysid, connection_info_.offboard_compid, connection_));
-        }
-
-        return mav_vehicle_control_.get();
-    }
-
     std::shared_ptr<mavlinkcom::MavLinkNode> createProxy(std::string name, std::string ip, int port)
     {
         if (connection_ == nullptr)
-            throw std::domain_error("MavLinkController requires connection object to be set before createProxy call");
+            throw std::domain_error("MavLinkDroneController requires connection object to be set before createProxy call");
 
         auto connection = MavLinkConnection::connectRemoteUdp("Proxy to: " + name + " at " + ip + ":" + std::to_string(port), LocalHostIp, ip, port);
 
@@ -225,23 +220,23 @@ struct MavLinkController::impl {
 
     void connect()
     {
-        createHILConnection(connection_info_);
-        initializeHILSubscrptions();
+        createMavConnection(connection_info_);
+        initializeMavSubscrptions();
     }
 
-    void createHILConnection(const MavConnectionInfo& connection_info)
+    void createMavConnection(const ConnectionInfo& connection_info)
     {
         if (connection_info.use_serial) {
-            createHILSerialConnection(connection_info.serial_port, connection_info.baud_rate);
+            createMavSerialConnection(connection_info.serial_port, connection_info.baud_rate);
         }
         else {
-            createHILUdpConnection(connection_info.ip_address, connection_info.ip_port);
+            createMavUdpConnection(connection_info.ip_address, connection_info.ip_port);
         }
         //Uncomment below for sending images over MavLink
         //connectToVideoServer();
     }
 
-    void createHILUdpConnection(const std::string& ip, int port)
+    void createMavUdpConnection(const std::string& ip, int port)
     {
         close();
 
@@ -258,7 +253,7 @@ struct MavLinkController::impl {
         main_node_->connect(connection_);
     }
 
-    void createHILSerialConnection(const std::string& port_name, int baud_rate)
+    void createMavSerialConnection(const std::string& port_name, int baud_rate)
     {
         close();
 
@@ -305,10 +300,10 @@ struct MavLinkController::impl {
 
     void hILSubscriber(std::shared_ptr<MavLinkConnection> connection, const MavLinkMessage& msg)
     {
-        processHILMessages(msg);
+        processMavMessages(msg);
     }
 
-    void processHILMessages(const MavLinkMessage& msg)
+    void processMavMessages(const MavLinkMessage& msg)
     {
         if (msg.msgid == HeartbeatMessage.msgid) {
             std::lock_guard<std::mutex> guard_heartbeat(heartbeat_mutex_);
@@ -324,7 +319,7 @@ struct MavLinkController::impl {
                     // and it scales multi rotor servo outpus to 0 to 1.
                     is_controls_0_1_ = false;
                 }
-            } else if (!is_hil_mode_set_) {
+            } else if (is_simulation_mode_ && !is_hil_mode_set_) {
                 setHILMode();
             }
         } else if (msg.msgid == StatusTextMessage.msgid) {
@@ -456,6 +451,7 @@ struct MavLinkController::impl {
         current_state = mavlinkcom::VehicleState();
         target_height_ = 0;
         is_offboard_mode_ = false;
+        is_simulation_mode_ = false;
         thrust_controller_ = PidController();
         Utils::setValue(rotor_controls_, 0.0f);
         was_reseted_ = false;
@@ -471,21 +467,21 @@ struct MavLinkController::impl {
 
     void update(real_T dt)
     {
-        if (connection_ == nullptr || !connection_->isOpen())
+        if (phys_vehicle_ == nullptr || connection_ == nullptr || !connection_->isOpen())
             return;
 
         //send sensor updates
-        const auto& imu_output = vehicle_->getImu()->getOutput();
-        const auto& mag_output = vehicle_->getMagnetometer()->getOutput();
-        const auto& baro_output = vehicle_->getBarometer()->getOutput();
+        const auto& imu_output = phys_vehicle_->getImu()->getOutput();
+        const auto& mag_output = phys_vehicle_->getMagnetometer()->getOutput();
+        const auto& baro_output = phys_vehicle_->getBarometer()->getOutput();
 
         sendHILSensor(imu_output.linear_acceleration, 
             imu_output.angular_velocity, 
             mag_output.magnetic_field_body,
             baro_output.pressure * 0.01f /*Pa to Milibar */, baro_output.altitude);
 
-        if (vehicle_->getGps() != nullptr) {
-            const auto& gps_output = vehicle_->getGps()->getOutput();
+        if (phys_vehicle_->getGps() != nullptr) {
+            const auto& gps_output = phys_vehicle_->getGps()->getOutput();
 
             //send GPS
             if (gps_output.is_valid && gps_output.gnss.time_utc > last_gps_time_) {
@@ -530,7 +526,9 @@ struct MavLinkController::impl {
         connect();
         connectToLogViewer();
         connectToQGC();
-        mav_vehicle_->connect(connection_);
+
+        if (mav_vehicle_ != nullptr)
+            mav_vehicle_->connect(connection_);
     }
     void stop()
     {
@@ -649,12 +647,14 @@ struct MavLinkController::impl {
     //additional methods for DroneControllerBase
     void updateState()
     {
-        StatusLock lock(parent_);
-        int version = mav_vehicle_->getVehicleStateVersion();
-        if (version != state_version_)
-        {
-            current_state = mav_vehicle_->getVehicleState();
-            state_version_ = version;
+        if (mav_vehicle_ != nullptr) {
+            StatusLock lock(parent_);
+            int version = mav_vehicle_->getVehicleStateVersion();
+            if (version != state_version_)
+            {
+                current_state = mav_vehicle_->getVehicleState();
+                state_version_ = version;
+            }
         }
     }
 
@@ -710,27 +710,47 @@ struct MavLinkController::impl {
         return is_offboard_mode_;
     }
 
-    bool requestControl(CancelableActionBase& cancelable_action)
+    bool isSimulationMode()
     {
-        mav_vehicle_->requestControl();
-        is_offboard_mode_ = true;
-        return true;
+        return is_simulation_mode_;
     }
-    bool releaseControl(CancelableActionBase& cancelable_action)
+
+    void setUserInputs(const vector<float>& inputs)
     {
-        mav_vehicle_->releaseControl();
-        is_offboard_mode_ = false;
-        return true;
+        //TODO: support XBox/Keyboard inputs for MavLink based drone?
     }
+
+    void setOffboardMode(bool is_set)
+    {
+        if (is_set) {
+            mav_vehicle_->requestControl();
+            is_offboard_mode_ = true;
+        }
+        else {
+            mav_vehicle_->releaseControl();
+            is_offboard_mode_ = false;
+        }
+    }
+
+    void setSimulationMode(bool is_set)
+    {
+        if (connection_ != nullptr) {
+            //TODO: can we do this?
+            throw std::exception("Cannot call setSimulationMode after connection was already established for MavLink");
+        }
+
+        is_simulation_mode_ = is_set;
+    }
+
     bool takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action)
     {
         bool rc = false;
         if (!mav_vehicle_->takeoff(getTakeoffZ(), 0.0f, 0.0f).wait(static_cast<int>(max_wait_seconds * 1000), &rc))
         {
-            throw MoveException("TakeOff command - timeout waiting for response");
+            throw VehicleMoveException("TakeOff command - timeout waiting for response");
         }
         if (!rc) {
-            throw MoveException("TakeOff command rejected by drone");
+            throw VehicleMoveException("TakeOff command rejected by drone");
         }
 
         bool success = parent_->waitForZ(max_wait_seconds, getTakeoffZ(), getDistanceAccuracy(), cancelable_action);
@@ -762,15 +782,15 @@ struct MavLinkController::impl {
             bool rc = false;
             if (!mav_vehicle_->land(current_state.global_est.pos.lat, current_state.global_est.pos.lon, current_state.home.global_pos.alt).wait(10000, &rc))
             {
-                throw MoveException("Landing command - timeout waiting for response from drone");
+                throw VehicleMoveException("Landing command - timeout waiting for response from drone");
             }
             else if(!rc) {
-                throw MoveException("Landing command rejected by drone");
+                throw VehicleMoveException("Landing command rejected by drone");
             }
         }
         else 
         {
-            throw MoveException("Cannot land safely with out a home position that tells us the home altitude.  Could fix this if we hook up a distance to ground sensor...");
+            throw VehicleMoveException("Cannot land safely with out a home position that tells us the home altitude.  Could fix this if we hook up a distance to ground sensor...");
         }
 
         float max_wait = 60;
@@ -779,7 +799,7 @@ struct MavLinkController::impl {
             return current_state.controls.landed;
         }, max_wait, cancelable_action))
         {
-            throw MoveException("Drone hasn't reported a landing state");
+            throw VehicleMoveException("Drone hasn't reported a landing state");
         }
         return true;
     }
@@ -788,7 +808,7 @@ struct MavLinkController::impl {
     {
         bool rc = false;
         if (!mav_vehicle_->returnToHome().wait(10000, &rc)) {
-            throw MoveException("goHome - timeout waiting for response from drone");
+            throw VehicleMoveException("goHome - timeout waiting for response from drone");
         }
         return rc;
     }
@@ -836,11 +856,11 @@ struct MavLinkController::impl {
 
     void commandVirtualRC(const RCData& rc_data)
     {
-        throw MoveException("commandVirtualRC is not implemented yet");
+        throw VehicleMoveException("commandVirtualRC is not implemented yet");
     }
     void commandEnableVirtualRC(bool enable)
     {
-        throw MoveException("commandVirtualRC is not implemented yet");
+        throw VehicleMoveException("commandVirtualRC is not implemented yet");
     }
 
     //drone parameters
@@ -873,89 +893,73 @@ struct MavLinkController::impl {
 }; //impl
 
 //empty constructor required for pimpl
-MavLinkController::MavLinkController()
+MavLinkDroneController::MavLinkDroneController()
 {
     pimpl_.reset(new impl(this));
 }
 
-MavLinkController::~MavLinkController()
+MavLinkDroneController::~MavLinkDroneController()
 {
     pimpl_->close();
 }
 
-void MavLinkController::initialize(const MavConnectionInfo& connection_info, const MultiRotor* vehicle)
+void MavLinkDroneController::initialize(const ConnectionInfo& connection_info, const MultiRotor* vehicle, bool is_simulation)
 {
-   pimpl_->initialize(connection_info, vehicle);
+   pimpl_->initialize(connection_info, vehicle, is_simulation);
 }
 
-MavLinkController::MavConnectionInfo MavLinkController::getMavConnectionInfo()
+MavLinkDroneController::ConnectionInfo MavLinkDroneController::getMavConnectionInfo()
 {
     return pimpl_->getMavConnectionInfo();
 }
-void MavLinkController::connect()
-{
-    pimpl_->connect();
-}
-void MavLinkController::sendImage(unsigned char data[], uint32_t length, uint16_t width, uint16_t height)
+void MavLinkDroneController::sendImage(unsigned char data[], uint32_t length, uint16_t width, uint16_t height)
 {
     pimpl_->sendImage(data, length, width, height);
 }
-void MavLinkController::getMocapPose(Vector3r& position, Quaternionr& orientation)
+void MavLinkDroneController::getMocapPose(Vector3r& position, Quaternionr& orientation)
 {
     pimpl_->getMocapPose(position, orientation);
 }
-void MavLinkController::sendMocapPose(const Vector3r& position, const Quaternionr& orientation)
+void MavLinkDroneController::sendMocapPose(const Vector3r& position, const Quaternionr& orientation)
 {
     pimpl_->sendMocapPose(position, orientation);
 }
-bool MavLinkController::hasVideoRequest()
+bool MavLinkDroneController::hasVideoRequest()
 {
     return pimpl_->hasVideoRequest();
 }
-void MavLinkController::close()
-{
-    pimpl_->close();
-}
-void MavLinkController::setNormalMode()
-{
-    pimpl_->setNormalMode();
-}
-void MavLinkController::setHILMode()
-{
-    pimpl_->setHILMode();
-}
-std::string MavLinkController::findPixhawk()
+std::string MavLinkDroneController::findPixhawk()
 {
     return impl::findPixhawk();
 }
 
 
 //*** Start: VehicleControllerBase implementation ***//
-void MavLinkController::reset()
+void MavLinkDroneController::reset()
 {
     pimpl_->reset();
 }
-void MavLinkController::update(real_T dt)
+void MavLinkDroneController::update(real_T dt)
 {
     pimpl_->update(dt);
 }
-real_T MavLinkController::getVertexControlSignal(unsigned int rotor_index)
+real_T MavLinkDroneController::getVertexControlSignal(unsigned int rotor_index)
 {
     return pimpl_->getVertexControlSignal(rotor_index);
 }
-size_t MavLinkController::getVertexCount()
+size_t MavLinkDroneController::getVertexCount()
 {
     return RotorControlsCount;
 }
-void MavLinkController::start()
+void MavLinkDroneController::start()
 {
     pimpl_->start();
 }
-void MavLinkController::stop()
+void MavLinkDroneController::stop()
 {
     pimpl_->stop();
 }
-void MavLinkController::getStatusMessages(std::vector<std::string>& messages)
+void MavLinkDroneController::getStatusMessages(std::vector<std::string>& messages)
 {
     pimpl_->getStatusMessages(messages);
 }
@@ -964,122 +968,131 @@ void MavLinkController::getStatusMessages(std::vector<std::string>& messages)
 
 
 //DroneControlBase
-Vector3r MavLinkController::getPosition()
+Vector3r MavLinkDroneController::getPosition()
 {
     return pimpl_->getPosition();
 }
 
-Vector3r MavLinkController::getVelocity()
+Vector3r MavLinkDroneController::getVelocity()
 {
     return pimpl_->getVelocity();
 }
 
-GeoPoint MavLinkController::getHomePoint()
+GeoPoint MavLinkDroneController::getHomePoint()
 {
     return pimpl_->getHomePoint();
 }
 
-GeoPoint MavLinkController::getGpsLocation()
+GeoPoint MavLinkDroneController::getGpsLocation()
 {
     return pimpl_->getGpsLocation();
 }
 
-Quaternionr MavLinkController::getOrientation()
+Quaternionr MavLinkDroneController::getOrientation()
 {
     return pimpl_->getOrientation();
 }
 
-double MavLinkController::timestampNow()
+double MavLinkDroneController::timestampNow()
 {
     return pimpl_->timestampNow();
 }
 
 //administrative
 
-bool MavLinkController::armDisarm(bool arm, CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::armDisarm(bool arm, CancelableActionBase& cancelable_action)
 {
     return pimpl_->armDisarm(arm, cancelable_action);
 }
 
-bool MavLinkController::isOffboardMode()
+
+void MavLinkDroneController::setUserInputs(const vector<float>& inputs)
+{
+    pimpl_->setUserInputs(inputs);
+}
+void MavLinkDroneController::setOffboardMode(bool is_set)
+{
+    pimpl_->setOffboardMode(is_set);
+}
+void MavLinkDroneController::setSimulationMode(bool is_set)
+{
+    pimpl_->setSimulationMode(is_set);
+}
+bool MavLinkDroneController::isOffboardMode()
 {
     return pimpl_->isOffboardMode();
 }
+bool MavLinkDroneController::isSimulationMode()
+{
+    return pimpl_->isSimulationMode();
+}
 
-bool MavLinkController::requestControl(CancelableActionBase& cancelable_action)
-{
-    return pimpl_->requestControl(cancelable_action);
-}
-bool MavLinkController::releaseControl(CancelableActionBase& cancelable_action)
-{
-    return pimpl_->releaseControl(cancelable_action);
-}
-bool MavLinkController::takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action)
 {
     return pimpl_->takeoff(max_wait_seconds, cancelable_action);
 }
 
-bool MavLinkController::hover(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::hover(CancelableActionBase& cancelable_action)
 {
     return pimpl_->hover(cancelable_action);
 }
 
-bool MavLinkController::land(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::land(CancelableActionBase& cancelable_action)
 {
     return pimpl_->land(cancelable_action);
 }
 
-bool MavLinkController::goHome(CancelableActionBase& cancelable_action)
+bool MavLinkDroneController::goHome(CancelableActionBase& cancelable_action)
 {
     return pimpl_->goHome(cancelable_action);
 }
 
-void MavLinkController::commandRollPitchZ(float pitch, float roll, float z, float yaw)
+void MavLinkDroneController::commandRollPitchZ(float pitch, float roll, float z, float yaw)
 {
     return pimpl_->commandRollPitchZ(pitch, roll, z, yaw);
 }
-void MavLinkController::commandVelocity(float vx, float vy, float vz, const YawMode& yaw_mode)
+void MavLinkDroneController::commandVelocity(float vx, float vy, float vz, const YawMode& yaw_mode)
 {
     return pimpl_->commandVelocity(vx, vy, vz, yaw_mode);
 }
-void MavLinkController::commandVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode)
+void MavLinkDroneController::commandVelocityZ(float vx, float vy, float z, const YawMode& yaw_mode)
 {
     return pimpl_->commandVelocityZ(vx, vy, z, yaw_mode);
 }
-void MavLinkController::commandPosition(float x, float y, float z, const YawMode& yaw_mode)
+void MavLinkDroneController::commandPosition(float x, float y, float z, const YawMode& yaw_mode)
 {
     return pimpl_->commandPosition(x, y, z, yaw_mode);
 }
 
 //virtual RC mode
-RCData MavLinkController::getRCData()
+RCData MavLinkDroneController::getRCData()
 {
     return pimpl_->getRCData();
 }
 
-void MavLinkController::commandVirtualRC(const RCData& rc_data)
+void MavLinkDroneController::commandVirtualRC(const RCData& rc_data)
 {
     return pimpl_->commandVirtualRC(rc_data);
 }
-void MavLinkController::commandEnableVirtualRC(bool enable)
+void MavLinkDroneController::commandEnableVirtualRC(bool enable)
 {
     return pimpl_->commandEnableVirtualRC(enable);
 }
 
 //drone parameters
-float MavLinkController::getCommandPeriod() 
+float MavLinkDroneController::getCommandPeriod() 
 {
     return pimpl_->getCommandPeriod();
 }
-float MavLinkController::getTakeoffZ()
+float MavLinkDroneController::getTakeoffZ()
 {
     return pimpl_->getTakeoffZ();
 }
-float MavLinkController::getDistanceAccuracy() 
+float MavLinkDroneController::getDistanceAccuracy() 
 {
     return pimpl_->getDistanceAccuracy();
 }
-const VehicleParams& MavLinkController::getVehicleParams()
+const VehicleParams& MavLinkDroneController::getVehicleParams()
 {
     return pimpl_->getVehicleParams();
 }

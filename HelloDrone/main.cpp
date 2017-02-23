@@ -72,7 +72,7 @@ int main()
         client.takeoff(takeoffTimeout);
 
         cout << "Press Enter to request offboard control" << endl; cin.get();
-        client.requestControl();
+        client.setOffboardMode(true);
 
         cout << "Press Enter to fly a 5 meters box at 2 m/s velocity" << endl; cin.get();        
         auto position = client.getPosition();

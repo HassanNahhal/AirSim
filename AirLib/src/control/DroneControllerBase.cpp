@@ -380,12 +380,12 @@ bool DroneControllerBase::moveByManual(float vx_max, float vy_max, float z_min, 
     } while (waiter_trim.sleep(cancelable_action) && !waiter_trim.is_timeout());
 
     if (count < kMinCountForTrim)
-        throw MoveException("Cannot compute RC trim because too few readings received");
+        throw VehicleMoveException("Cannot compute RC trim because too few readings received");
 
     //take average
     rc_data_trims.divideBy(static_cast<float>(count));
     if (rc_data_trims.isAnyMoreThan(kMaxTrim))
-        throw MoveException(Utils::stringf("RC trims does not seem to be valid: %s", rc_data_trims.toString().c_str()));
+        throw VehicleMoveException(Utils::stringf("RC trims does not seem to be valid: %s", rc_data_trims.toString().c_str()));
 
     Utils::logMessage("RCData Trims: %s", rc_data_trims.toString().c_str());
 
@@ -462,7 +462,7 @@ bool DroneControllerBase::waitForZ(float max_wait_seconds, float z, float margin
     }, max_wait_seconds, cancelable_action))
     {
         //Only raise exception is time out occurred. If preempted then return status.
-        throw MoveException(Utils::stringf("Drone hasn't came to expected z of %f within time %f sec within error margin %f (current z = %f)",
+        throw VehicleMoveException(Utils::stringf("Drone hasn't came to expected z of %f within time %f sec within error margin %f (current z = %f)",
             z, max_wait_seconds, margin, cur_z));
     }
     return true;

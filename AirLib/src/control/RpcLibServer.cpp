@@ -39,11 +39,15 @@ RpcLibServer::RpcLibServer(DroneControlServer* drone, string server_address, uin
 {
     pimpl_.reset(new impl(server_address, port));
     pimpl_->server.bind("armDisarm", [&](bool arm) -> bool { return drone_->armDisarm(arm); });
-    pimpl_->server.bind("requestControl", [&]() -> bool { return drone_->requestControl(); });
-    pimpl_->server.bind("releaseControl", [&]() -> bool { return drone_->releaseControl(); });
+    pimpl_->server.bind("setOffboardMode", [&](bool is_set) -> void { drone_->setOffboardMode(is_set); });
+    pimpl_->server.bind("setSimulationMode", [&](bool is_set) -> void { drone_->setSimulationMode(is_set); });
+    pimpl_->server.bind("setUserInputs", [&](const vector<float>& inputs) -> void { drone_->setUserInputs(inputs); });
     pimpl_->server.bind("takeoff", [&](float max_wait_seconds) -> bool { return drone_->takeoff(max_wait_seconds); });
     pimpl_->server.bind("land", [&]() -> bool { return drone_->land(); });
     pimpl_->server.bind("goHome", [&]() -> bool { return drone_->goHome(); });
+    pimpl_->server.bind("start", [&]() -> void { drone_->start(); });
+    pimpl_->server.bind("stop", [&]() -> void { drone_->stop(); });
+
 
     pimpl_->server.bind("moveByAngle", [&](float pitch, float roll, float z, float yaw, float duration) -> 
         bool { return drone_->moveByAngle(pitch, roll, z, yaw, duration); });
@@ -90,7 +94,8 @@ RpcLibServer::RpcLibServer(DroneControlServer* drone, string server_address, uin
     pimpl_->server.bind("getHomePoint", [&]() -> RpcLibAdapators::GeoPoint { return drone_->getHomePoint(); });
     pimpl_->server.bind("getGpsLocation", [&]() -> RpcLibAdapators::GeoPoint { return drone_->getGpsLocation(); });
     pimpl_->server.bind("isOffboardMode", [&]() -> bool { return drone_->isOffboardMode(); });
-    pimpl_->server.bind("getDebugInfo", [&]() -> std::string { return drone_->getServerDebugInfo(); });
+    pimpl_->server.bind("isSimulationMode", [&]() -> bool { return drone_->isSimulationMode(); });
+    pimpl_->server.bind("getServerDebugInfo", [&]() -> std::string { return drone_->getServerDebugInfo(); });
 
     pimpl_->server.suppress_exceptions(true);
 }

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-#ifndef air_ros_MavLinkHelper_hpp
-#define air_ros_MavLinkHelper_hpp
+#ifndef air_ros_MavLinkDroneController_hpp
+#define air_ros_MavLinkDroneController_hpp
 
 #include "common/CommonStructs.hpp"
 #include "common/Common.hpp"
@@ -17,7 +17,7 @@
 namespace msr { namespace airlib {
 
 
-class MavLinkController : public DroneControllerBase
+class MavLinkDroneController : public DroneControllerBase
 {
 public:
     typedef msr::airlib::GeoPoint GeoPoint;
@@ -28,15 +28,16 @@ public:
     typedef msr::airlib::real_T real_T;
     typedef msr::airlib::MultiRotor MultiRotor;
 
-    struct MavConnectionInfo {
+    struct ConnectionInfo {
         /* Default values are requires so uninitialized instance doesn't have random values */
+
         std::string vehicle_name = "Pixhawk";
         bool use_serial = true; // false means use UDP instead
-        //needed only if use_serial = true
+        //Used to connect via HITL: needed only if use_serial = true
         std::string serial_port = "*";
         int baud_rate = 115200;
 
-        //needed only if use_serial = false
+        //Used to connect via SITL: needed only if use_serial = false
         std::string ip_address = "127.0.0.1";
         int ip_port = 14560;
 
@@ -59,20 +60,19 @@ public:
 
 public:
     //required for pimpl
-    MavLinkController();
-    ~MavLinkController();
+    MavLinkDroneController();
+    ~MavLinkDroneController();
 
-    void initialize(const MavConnectionInfo& connection_info, const MultiRotor* vehicle);
-    MavConnectionInfo getMavConnectionInfo();
-    void connect();
+    //non-base interface specific to MavLinKDroneController
+    void initialize(const ConnectionInfo& connection_info, const MultiRotor* vehicle, bool is_simulation);
+    ConnectionInfo getMavConnectionInfo();
+    static std::string findPixhawk();
+
+    //TODO: get rid of below methods?
     void sendImage(unsigned char data[], uint32_t length, uint16_t width, uint16_t height);
     void getMocapPose(Vector3r& position, Quaternionr& orientation);
     void sendMocapPose(const Vector3r& position, const Quaternionr& orientation);
     bool hasVideoRequest();
-    void close();
-    void setNormalMode();
-    void setHILMode();
-    static std::string findPixhawk();
 
     //*** Start: VehicleControllerBase implementation ***//
     virtual void reset() override;
@@ -82,6 +82,12 @@ public:
     virtual size_t getVertexCount() override;
     virtual real_T getVertexControlSignal(unsigned int rotor_index) override;
     virtual void getStatusMessages(std::vector<std::string>& messages) override;
+
+    virtual bool isOffboardMode() override;
+    virtual bool isSimulationMode() override;
+    virtual void setOffboardMode(bool is_set) override;
+    virtual void setSimulationMode(bool is_set) override;
+    virtual void setUserInputs(const vector<float>& inputs) override;
     //*** End: VehicleControllerBase implementation ***//
 
 
@@ -91,12 +97,9 @@ public:
     Vector3r getVelocity() override;
     Quaternionr getOrientation() override;
     RCData getRCData() override;
-    bool isOffboardMode();
     double timestampNow() override;
 
     bool armDisarm(bool arm, CancelableActionBase& cancelable_action) override;
-    bool requestControl(CancelableActionBase& cancelable_action) override;
-    bool releaseControl(CancelableActionBase& cancelable_action) override;
     bool takeoff(float max_wait_seconds, CancelableActionBase& cancelable_action) override;
     bool land(CancelableActionBase& cancelable_action) override;
     bool goHome(CancelableActionBase& cancelable_action) override; 
@@ -117,7 +120,7 @@ protected:
     const VehicleParams& getVehicleParams() override;
     //*** End: DroneControllerBase implementation ***//
 
-public:
+public: //pimpl
     struct impl;
     std::unique_ptr<impl> pimpl_;
 };

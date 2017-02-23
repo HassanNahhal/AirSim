@@ -115,14 +115,6 @@ struct RCData {
     }
 };
 
-//General exception when move command has runtime errors
-class MoveException : public std::runtime_error {
-public:
-    MoveException(const std::string& message)
-        : runtime_error(message) { 
-    }
-};
-
 
 }} //namespace
 #endif

@@ -17,8 +17,11 @@ class RpcLibClient {
 public:
     RpcLibClient(const string& ip_address = "127.0.0.1", uint16_t port = 41451);
     bool armDisarm(bool arm);
-    bool requestControl();
-    bool releaseControl();
+    void setOffboardMode(bool is_set);
+    void setSimulationMode(bool is_set);
+    void setUserInputs(const vector<float>& inputs);
+    void start();
+    void stop();
     bool takeoff(float max_wait_ms = 15);
     bool land();
     bool goHome();
@@ -47,8 +50,8 @@ public:
     GeoPoint getHomePoint();
     GeoPoint getGpsLocation();
     bool isOffboardMode();
+    bool isSimulationMode();
     std::string getDebugInfo();
-    void cancelAllTasks();
 
     //request image
     bool setImageTypeForCamera(int camera_id, DroneControllerBase::ImageType type);

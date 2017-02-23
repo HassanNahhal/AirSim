@@ -104,7 +104,7 @@ public:
 
     bool execute(const DroneCommandParameters& params) 
     {
-        params.context->client.requestControl();
+        params.context->client.setOffboardMode(true);
         return false;
     }
 };
@@ -117,7 +117,7 @@ public:
 
     bool execute(const DroneCommandParameters& params) 
     {
-        params.context->client.releaseControl();
+        params.context->client.setOffboardMode(false);
         return false;
     }
 };

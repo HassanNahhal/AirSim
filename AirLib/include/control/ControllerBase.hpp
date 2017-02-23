@@ -5,6 +5,8 @@
 #define msr_air_copter_sim_ControllerBase_hpp
 
 #include "common/UpdatableObject.hpp"
+#include <exception>
+#include <string>
 
 namespace msr { namespace airlib {
 
@@ -34,13 +36,21 @@ public:
     virtual void start()
     {
         //default implementation
+        //potentially open any serial/TCP connections or allocate resources
     }
     virtual void stop()
     {
         //default implementation
+        //clean up any resources
     }
-
 };
+
+class ControllerException : public std::runtime_error {
+public:
+    ControllerException(const std::string& message)
+        : runtime_error(message) { 
+    }
+};   
 
 }} //namespace
 #endif
