@@ -1,8 +1,8 @@
 #pragma once
 
 #include "controllers/MavLinkDroneController.hpp"
-#include "DroneControlServer.hpp"
-#include "control/RpcLibServer.hpp"
+#include "controllers/DroneControllerCancelable.hpp"
+#include "rpc/RpcLibServer.hpp"
 #include "vehicles/configs/Px4QuadX.hpp"
 #include "vehicles/MultiRotor.hpp"
 #include "physics//Kinematics.hpp"
@@ -32,9 +32,11 @@ public:
     virtual void endPlay() override;
     virtual void updateRenderedState() override;
     virtual void updateRendering() override;
+
     virtual void startApiServer() override;
     virtual void stopApiServer() override;
-    virtual bool isApiServerStarted() override();
+    virtual bool isApiServerStarted() override;
+    virtual msr::airlib::VehicleControllerBase* getController() override;
 
     //PhysicsBody interface
     //this just wrapped around MultiRotor physics body
@@ -54,7 +56,7 @@ private:
     msr::airlib::Environment environment_;
     AFlyingPawn* vehicle_pawn_;
 
-    std::unique_ptr<msr::airlib::DroneControlServer> drone_control_server_;
+    std::unique_ptr<msr::airlib::DroneControllerCancelable> controller_cancelable_;
     std::unique_ptr<msr::airlib::RpcLibServer> rpclib_server_;
 
     real_T rotor_speeds_[4];

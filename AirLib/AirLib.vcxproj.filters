@@ -186,9 +186,6 @@
     <ClInclude Include="include\controllers\ControllerBase.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\controllers\ControlServerBase.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\controllers\DroneCommon.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -208,15 +205,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\controllers\PidController.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controllers\RpcLibAdapators.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controllers\RpcLibClient.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controllers\RpcLibServer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\controllers\RpyDirectController.hpp">
@@ -249,18 +237,24 @@
     <ClInclude Include="include\safety\SphereGeoFence.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\rpc\RpcLibAdapators.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\RpcLibClient.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\RpcLibServer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rpc\ControlServerBase.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\controllers\DroneControllerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\controllers\MavLinkDroneController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\controllers\RpcLibClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\controllers\RpcLibServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\controllers\Settings.cpp">
@@ -270,6 +264,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\safety\SafetyEval.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rpc\RpcLibClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rpc\RpcLibServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

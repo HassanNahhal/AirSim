@@ -1,6 +1,9 @@
 #pragma once
 
 #include "common/UpdatableObject.hpp"
+#include "controllers/VehicleControllerBase.hpp"
+#include "rpc/ControlServerBase.hpp"
+
 
 class VehicleConnectorBase : public msr::airlib::UpdatableObject
 {
@@ -22,4 +25,5 @@ public:
     virtual void startApiServer() = 0;
     virtual void stopApiServer() = 0;
     virtual bool isApiServerStarted() = 0;
+    virtual msr::airlib::VehicleControllerBase* getController() = 0;
 };

@@ -6,8 +6,8 @@
 
 #include "common/Common.hpp"
 #include "common/CommonStructs.hpp"
-#include "DroneCommon.hpp"
-#include "DroneControllerBase.hpp"
+#include "controllers/DroneCommon.hpp"
+#include "controllers/DroneControllerBase.hpp"
 #include "safety/SafetyEval.hpp"
 #include "rpc/msgpack.hpp"
 

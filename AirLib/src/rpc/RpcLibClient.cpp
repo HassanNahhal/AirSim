@@ -19,9 +19,9 @@ STRICT_MODE_OFF
 #endif // !RPCLIB_MSGPACK
 
 #include "rpc/client.h"
-#include "controllers/RpcLibAdapators.hpp"
+#include "rpc/RpcLibAdapators.hpp"
 STRICT_MODE_ON
-#include "controllers/RpcLibClient.hpp"
+#include "rpc/RpcLibClient.hpp"
 #ifdef _MSC_VER
 __pragma(warning( disable : 4239))
 #endif			  

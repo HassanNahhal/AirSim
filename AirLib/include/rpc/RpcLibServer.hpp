@@ -6,7 +6,7 @@
 
 #include "common/Common.hpp"
 #include <functional>
-#include "DroneControllerCancelable.hpp"
+#include "controllers/DroneControllerCancelable.hpp"
 #include "ControlServerBase.hpp"
 
 namespace msr { namespace airlib {

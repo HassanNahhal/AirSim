@@ -6,7 +6,7 @@
 #include "physics/FastPhysicsEngine.hpp"
 #include "physics/World.hpp"
 #include "common/StateReporterWrapper.hpp"
-#include "controllers/ControlServerBase.hpp"
+#include "rpc/ControlServerBase.hpp"
 #include "SimModeBase.h"
 #include "SimModeWorldBase.generated.h"
 

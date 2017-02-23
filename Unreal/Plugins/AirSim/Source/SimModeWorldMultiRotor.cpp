@@ -1,10 +1,10 @@
 #include "AirSim.h"
 #include "SimModeWorldMultiRotor.h"
 #include "AirBlueprintLib.h"
-#include "control/DroneControllerBase.hpp"
+#include "controllers/DroneControllerBase.hpp"
 #include "physics/PhysicsBody.hpp"
 #include <memory>
-#include "control/Settings.h"
+#include "controllers/Settings.h"
 #include "FlyingPawn.h"
 
 void ASimModeWorldMultiRotor::BeginPlay()
@@ -27,7 +27,8 @@ void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
     if (fpv_vehicle_connector_ != nullptr && fpv_vehicle_connector_->isApiServerStarted() && getVehicleCount() > 0) {
 
         using namespace msr::airlib;
-        auto camera_type = drone_control_server_->getImageTypeForCamera(0);
+        auto controller = static_cast<DroneControllerBase*>(fpv_vehicle_connector_->getController());
+        auto camera_type = controller->getImageTypeForCamera(0);
         if (camera_type != DroneControllerBase::ImageType::None) { 
             if (CameraDirector != nullptr) {
                 APIPCamera* camera = CameraDirector->getCamera(0);
@@ -47,7 +48,7 @@ void ASimModeWorldMultiRotor::Tick(float DeltaSeconds)
                     float width, height;
                     image_.Empty();
                     camera->getScreenshot(pip_type, image_, width, height);
-                    drone_control_server_->setImageForCamera(0, camera_type, std::vector<msr::airlib::uint8_t>(image_.GetData(), image_.GetData() + image_.Num()));
+                    controller->setImageForCamera(0, camera_type, std::vector<msr::airlib::uint8_t>(image_.GetData(), image_.GetData() + image_.Num()));
                 }
             }
         }

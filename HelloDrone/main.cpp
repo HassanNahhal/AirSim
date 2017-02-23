@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <chrono>
-#include "controllers/RpcLibClient.hpp"
+#include "rpc/RpcLibClient.hpp"
 #include "controllers/DroneControllerBase.hpp"
 STRICT_MODE_OFF
 #ifndef RPCLIB_MSGPACK

@@ -1,7 +1,7 @@
 #include "AirSim.h"
 #include "SimModeBase.h"
 #include "AirBlueprintLib.h"
-#include "control/Settings.h"
+#include "controllers/Settings.h"
 
 ASimModeBase::ASimModeBase()
 {

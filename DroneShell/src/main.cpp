@@ -10,7 +10,7 @@
 #include "common/Common.hpp"
 #include "common/common_utils/Utils.hpp"
 #include "common/common_utils/AsyncTasker.hpp"
-#include "controllers/RpcLibClient.hpp"
+#include "rpc/RpcLibClient.hpp"
 #include "SimpleShell.hpp"
 #include "common/EarthUtils.hpp"
 #include "controllers/DroneCommon.hpp"

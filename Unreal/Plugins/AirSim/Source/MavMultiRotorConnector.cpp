@@ -1,7 +1,7 @@
 #include "AirSim.h"
 #include "MavMultiRotorConnector.h"
 #include "AirBlueprintLib.h"
-#include "control/Settings.h"
+#include "controllers/Settings.h"
 
 using namespace msr::airlib;
 
@@ -113,11 +113,18 @@ void MavMultiRotorConnector::updateRendering()
 	}
 }
 
+
+msr::airlib::VehicleControllerBase* MavMultiRotorConnector::getController()
+{
+    return controller_.get();
+}
+
+
 void MavMultiRotorConnector::startApiServer()
 {
-    drone_control_server_.reset(new msr::airlib::DroneControlServer(controller_.get()));
+    controller_cancelable_.reset(new msr::airlib::DroneControllerCancelable(controller_.get()));
     std::string server_address = Settings::singleton().getString("LocalHostIp", "127.0.0.1");
-    rpclib_server_.reset(new msr::airlib::RpcLibServer(drone_control_server_.get(), server_address));
+    rpclib_server_.reset(new msr::airlib::RpcLibServer(controller_cancelable_.get(), server_address));
     rpclib_server_->start();
 
 }
@@ -125,7 +132,7 @@ void MavMultiRotorConnector::stopApiServer()
 {
     rpclib_server_->stop();
     rpclib_server_.release();
-    drone_control_server_.release();
+    controller_cancelable_.release();
 }
 
 bool MavMultiRotorConnector::isApiServerStarted()

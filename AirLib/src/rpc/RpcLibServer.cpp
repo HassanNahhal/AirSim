@@ -17,9 +17,9 @@ STRICT_MODE_OFF
 #endif // !RPCLIB_MSGPACK
 
 #include "rpc/server.h"
-#include "controllers/RpcLibAdapators.hpp"
+#include "rpc/RpcLibAdapators.hpp"
 STRICT_MODE_ON
-#include "controllers/RpcLibServer.hpp"
+#include "rpc/RpcLibServer.hpp"
 
 
 namespace msr { namespace airlib {

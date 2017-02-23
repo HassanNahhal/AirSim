@@ -7,8 +7,8 @@
 #include "common/Common.hpp"
 #include <functional>
 #include "common/CommonStructs.hpp"
-#include "DroneCommon.hpp"
-#include "DroneControllerBase.hpp"
+#include "controllers/DroneCommon.hpp"
+#include "controllers/DroneControllerBase.hpp"
 #include "safety/SafetyEval.hpp"
 
 namespace msr { namespace airlib {

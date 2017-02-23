@@ -49,7 +49,7 @@
     <ClInclude Include="include\common\UpdatableObject.hpp" />
     <ClInclude Include="include\common\VectorMath.hpp" />
     <ClInclude Include="include\common\common_utils\AsyncTasker.hpp" />
-    <ClInclude Include="include\controllers\ControlServerBase.hpp" />
+    <ClInclude Include="include\rpc\ControlServerBase.hpp" />
     <ClInclude Include="include\safety\CubeGeoFence.hpp" />
     <ClInclude Include="include\controllers\DroneCommon.hpp" />
     <ClInclude Include="include\controllers\DroneControllerBase.hpp" />
@@ -57,9 +57,9 @@
     <ClInclude Include="include\controllers\MavLinkDroneController.hpp" />
     <ClInclude Include="include\safety\ObstacleMap.hpp" />
     <ClInclude Include="include\controllers\PidController.hpp" />
-    <ClInclude Include="include\controllers\RpcLibAdapators.hpp" />
-    <ClInclude Include="include\controllers\RpcLibClient.hpp" />
-    <ClInclude Include="include\controllers\RpcLibServer.hpp" />
+    <ClInclude Include="include\rpc\RpcLibAdapators.hpp" />
+    <ClInclude Include="include\rpc\RpcLibClient.hpp" />
+    <ClInclude Include="include\rpc\RpcLibServer.hpp" />
     <ClInclude Include="include\safety\SafetyEval.hpp" />
     <ClInclude Include="include\controllers\DroneControllerCancelable.hpp" />
     <ClInclude Include="include\controllers\Settings.h" />
@@ -102,8 +102,8 @@
     <ClCompile Include="src\controllers\DroneControllerBase.cpp" />
     <ClCompile Include="src\controllers\MavLinkDroneController.cpp" />
     <ClCompile Include="src\safety\ObstacleMap.cpp" />
-    <ClCompile Include="src\controllers\RpcLibClient.cpp" />
-    <ClCompile Include="src\controllers\RpcLibServer.cpp" />
+    <ClCompile Include="src\rpc\RpcLibClient.cpp" />
+    <ClCompile Include="src\rpc\RpcLibServer.cpp" />
     <ClCompile Include="src\safety\SafetyEval.cpp" />
     <ClCompile Include="src\controllers\Settings.cpp" />
   </ItemGroup>
